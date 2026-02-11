@@ -70,8 +70,7 @@ if st.button("Generate Plan"):
                 response = model.generate_content(
                     build_prompt(feature),
                     generation_config={
-                        "temperature": 0.5,
-                        "max_output_tokens": 600
+                        "temperature": 0.5
                     }
                 )
                 st.subheader("📋 AI Generated Output")
