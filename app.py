@@ -1,7 +1,8 @@
 import streamlit as st
 import google.generativeai as genai
 import matplotlib.pyplot as plt
-import numpy as np
+import pandas as pd
+import json
 
 # ---------------- CONFIG ----------------
 st.set_page_config(page_title="CoachBot AI", page_icon="🏋️", layout="centered")
@@ -18,7 +19,7 @@ model = genai.GenerativeModel("gemini-1.5-flash")
 
 # ---------------- UI ----------------
 st.title("🏋️ CoachBot AI")
-st.caption("AI-powered personalized fitness & sports coaching")
+st.caption("AI-powered personalized fitness & sports coaching (data + graphs)")
 
 st.divider()
 
@@ -43,8 +44,12 @@ feature = st.selectbox(
 
 # ---------------- PROMPT LOGIC ----------------
 def build_prompt(feature):
+    """
+    Ask the AI to output structured JSON data instead of paragraphs.
+    Each entry includes Day, Workout/Task, Intensity (1-100).
+    """
     base = f"""
-You are a certified professional sports coach and fitness trainer.
+You are a professional sports coach.
 
 Athlete Profile:
 Sport: {sport}
@@ -54,15 +59,20 @@ Injury/Risk Area: {injury}
 Diet Preference: {diet}
 
 Follow safe training practices. Avoid medical diagnosis.
-Write COMPLETE structured output in clear sections. Do NOT stop early.
+
+Output 7 entries for the week (Monday to Sunday) as JSON.
+Format each entry as:
+{{"Day": "Monday", "Workout": "Squats, Push-ups", "Intensity": 70}}
+
+Do NOT include any text outside JSON.
 """
 
     prompts = {
-        "Full Workout Plan": base + "Generate a full detailed weekly workout plan (Day-wise).",
-        "Recovery & Injury-Safe Training": base + "Generate a recovery-focused and injury-safe weekly training routine.",
-        "Weekly Nutrition Plan": base + "Generate a simple weekly nutrition plan aligned with the athlete’s goal.",
-        "Warm-up & Cooldown Routine": base + "Generate a structured warm-up and cooldown routine.",
-        "Tactical Improvement Tips": base + "Provide clear tactical and performance improvement tips for the position."
+        "Full Workout Plan": base,
+        "Recovery & Injury-Safe Training": base.replace("Workout", "Recovery Routine"),
+        "Weekly Nutrition Plan": base.replace("Workout", "Meals"),
+        "Warm-up & Cooldown Routine": base.replace("Workout", "Warm-up & Cooldown"),
+        "Tactical Improvement Tips": base.replace("Workout", "Tactical Tips")
     }
 
     return prompts[feature]
@@ -76,32 +86,34 @@ if st.button("Generate Plan"):
             try:
                 response = model.generate_content(
                     build_prompt(feature),
-                    generation_config={
-                        "temperature": 0.4,
-                        "max_output_tokens": 1500
-                    }
+                    generation_config={"temperature":0.3, "max_output_tokens":800}
                 )
 
-                st.subheader("📋 AI Generated Output")
-                st.markdown(response.text)
+                # Parse JSON from AI
+                try:
+                    plan_data = json.loads(response.text)
+                    df = pd.DataFrame(plan_data)
+                except Exception:
+                    st.error(f"Failed to parse AI output as JSON.\nRaw output:\n{response.text}")
+                    st.stop()
+
+                # Show as table
+                st.subheader("📋 Weekly Plan Table")
+                st.dataframe(df)
+
+                # Show graph if Intensity exists
+                if "Intensity" in df.columns:
+                    st.subheader("📈 Weekly Intensity Graph")
+                    fig, ax = plt.subplots()
+                    ax.plot(df["Day"], df["Intensity"], marker="o")
+                    ax.set_xlabel("Day")
+                    ax.set_ylabel("Intensity")
+                    ax.set_title("Weekly Training Load")
+                    st.pyplot(fig)
 
             except Exception as e:
                 st.error(f"Error generating plan: {str(e)}")
 
-# ---------------- GRAPH ----------------
-st.divider()
-st.subheader("📈 Weekly Training Load")
-
-days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-load = np.random.randint(50, 100, size=7)
-
-fig, ax = plt.subplots()
-ax.plot(days, load, marker="o")
-ax.set_xlabel("Day")
-ax.set_ylabel("Training Intensity")
-ax.set_title("Weekly Training Load")
-
-st.pyplot(fig)
-
 st.divider()
 st.caption("⚠️ AI-generated advice is for educational purposes only.")
+
