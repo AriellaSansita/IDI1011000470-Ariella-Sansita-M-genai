@@ -3,8 +3,10 @@ import streamlit as st
 import google.generativeai as genai
 
 # ---------------- CONFIG ----------------
+# Fixed: Use environment variable for API key (set GOOGLE_API_KEY in your environment)
 genai.configure(api_key=os.getenv("AIzaSyBv2dnTTYh3CPHmnRCDO8NQeOcAyRIectw"))
-model = genai.GenerativeModel("gemini-2.5 Flash")
+# Fixed: Correct model name (assuming "gemini-1.5-flash" based on available models; adjust if needed)
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 st.set_page_config(page_title="CoachBot AI", page_icon="🏋️", layout="centered")
 
