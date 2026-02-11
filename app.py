@@ -4,7 +4,7 @@ import pandas as pd
 import json
 
 # ---------------- CONFIG ----------------
-API_KEY = "YOUR_GOOGLE_API_KEY"  # Replace with your API key
+API_KEY = "YOUR_ACTUAL_GOOGLE_API_KEY"  # Replace with your real key
 genai.configure(api_key=API_KEY)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
@@ -60,9 +60,9 @@ try:
 
     # Show table
     print("\n📋 Weekly Plan Table:")
-    print(df)
+    print(df.to_string(index=False))
 
-    # Show graph if Intensity exists
+    # Show / save graph if Intensity exists
     if "Intensity" in df.columns:
         plt.figure(figsize=(10,5))
         plt.plot(df["Day"], df["Intensity"], marker="o", linestyle="-", color="orange")
@@ -71,9 +71,10 @@ try:
         plt.title("📈 Weekly Training Load")
         plt.ylim(0, 100)
         plt.grid(True)
-        plt.show()
+        plt.tight_layout()
+        plt.savefig("weekly_intensity.png")  # Saves the graph as a file
+        print("\nGraph saved as 'weekly_intensity.png' in your folder.")
 
 except Exception as e:
     print(f"Error: {str(e)}")
-
 
