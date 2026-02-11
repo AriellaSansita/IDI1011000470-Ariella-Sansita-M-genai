@@ -2,10 +2,7 @@ import os
 import streamlit as st
 import google.generativeai as genai
 
-# ---------------- CONFIG ----------------
-# Ensure you set the GOOGLE_API_KEY environment variable with your actual API key
-# Example: export GOOGLE_API_KEY=your_actual_api_key_here
-api_key = os.getenv ("AIzaSyBst6SuMVcJTTQ4olcQ3LwUpgonD1GsHNI")
+api_key = st.secrets["GOOGLE_API_KEY"]
 if not api_key:
     st.error("Please set the GOOGLE_API_KEY environment variable with your Google Generative AI API key.")
     st.stop()
