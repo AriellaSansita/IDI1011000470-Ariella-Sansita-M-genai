@@ -5,7 +5,7 @@ import google.generativeai as genai
 # ---------------- CONFIG ----------------
 # Ensure you set the GOOGLE_API_KEY environment variable with your actual API key
 # Example: export GOOGLE_API_KEY=your_actual_api_key_here
-api_key = os.getenv("GOOGLE_API_KEY")
+api_key = os.getenv("AIzaSyBv2dnTTYh3CPHmnRCDO8NQeOcAyRIectw")
 if not api_key:
     st.error("Please set the GOOGLE_API_KEY environment variable with your Google Generative AI API key.")
     st.stop()
