@@ -13,7 +13,19 @@ st.write("AI-powered personalized coach for young athletes")
 
 # ---------------- USER INPUT ----------------
 sport = st.selectbox("Sport", ["Football", "Cricket", "Basketball", "Athletics", "Other"])
-position = st.text_input("Player Position")
+
+positions_by_sport = {
+    "Football": ["Goalkeeper", "Defender", "Midfielder", "Winger", "Striker"],
+    "Cricket": ["Batsman", "Bowler", "All-Rounder", "Wicket Keeper"],
+    "Basketball": ["Point Guard", "Shooting Guard", "Small Forward", "Power Forward", "Center"],
+    "Athletics": ["Sprinter", "Long Distance Runner", "Jumper", "Thrower"],
+    "Other": ["General Athlete"]
+}
+
+position = st.selectbox(
+    "Player Position",
+    positions_by_sport.get(sport, ["General Athlete"])
+)
 injury = st.text_input("Injury History / Risk Area (type 'None' if no injury)")
 goal = st.selectbox("Primary Goal", ["Stamina", "Strength", "Speed", "Recovery", "Skill Improvement"])
 diet = st.selectbox("Diet Type", ["Vegetarian", "Non-Vegetarian", "Vegan"])
