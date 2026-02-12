@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 # ---------------- CONFIG ----------------
-genai.configure(api_key="AIzaSyB9VfhS0_sApB2TBRzEi06G1lZlwgDOKnA")
+genai.configure(api_key="AIzaSyBv2dnTTYh3CPHmnRCDO8NQeOcAyRIectw")
 
 model = genai.GenerativeModel("gemini-2.5-flash")
 
