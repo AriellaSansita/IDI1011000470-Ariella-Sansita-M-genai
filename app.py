@@ -335,7 +335,7 @@ if st.button("Generate Coaching Advice"):
                     generation_config={
                         "temperature": 0.7,
                         "top_p": 0.9,
-                        "max_output_tokens": 20000
+                        "max_output_tokens": 2000
                     }
                 )
 
