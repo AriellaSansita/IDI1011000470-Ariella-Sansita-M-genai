@@ -73,6 +73,9 @@ Diet: {diet}
 Goal: {goal}
 Weakness: {weakness}
 """
+
+    prompts = {
+
         # -------- Mandatory --------
         "Full Workout Plan": """
 Generate a COMPLETE structured workout:
@@ -194,6 +197,7 @@ Optimize hydration based on workload and climate.
     return base + "\nTASK:\n" + prompts[feature]
 
 
+
 # ---------------- GENERATE OUTPUT ----------------
 if st.button("Generate Coaching Advice"):
 
@@ -209,6 +213,7 @@ if st.button("Generate Coaching Advice"):
                     generation_config={
                         "temperature": 0.7,
                         "top_p": 0.9,
+                        "max_output_tokens": 20000
                     }
                 )
 
