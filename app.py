@@ -3,131 +3,80 @@ import google.generativeai as genai
 import pandas as pd
 import matplotlib.pyplot as plt
 
-
 # ---------------- CONFIG ----------------
-genai.configure(api_key="AIzaSyBv2dnTTYh3CPHmnRCDO8NQeOcAyRIectw")
-
+genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 model = genai.GenerativeModel("gemini-2.5-flash")
 
 st.set_page_config(page_title="CoachBot AI", layout="wide")
-
 st.title("🏆 CoachBot AI - Smart Fitness Assistant")
 st.write("AI-powered personalized coach for young athletes")
 
 # ---------------- USER INPUT ----------------
-# ---------------- SPORT SELECTION ----------------
-
 sports_list = [
-    "Football",
-    "Cricket",
-    "Basketball",
-    "Athletics",
-    "Badminton",
-    "Tennis",
-    "Hockey",
-    "Volleyball",
-    "Kabaddi",
-    "Table Tennis",
-    "Swimming",
-    "Martial Arts",
-    "Other"
+    "Football","Cricket","Basketball","Athletics","Badminton","Tennis",
+    "Hockey","Volleyball","Kabaddi","Table Tennis","Swimming","Martial Arts","Other"
 ]
 
 sport = st.selectbox("Sport", sports_list)
 
-# ---------------- SPORT-SPECIFIC POSITIONS ----------------
-
 positions_by_sport = {
-    "Football": ["Goalkeeper", "Defender", "Midfielder", "Winger", "Striker"],
-    "Cricket": ["Batsman", "Bowler", "All-Rounder", "Wicket Keeper"],
-    "Basketball": ["Point Guard", "Shooting Guard", "Small Forward", "Power Forward", "Center"],
-    "Athletics": ["Sprinter", "Long Distance Runner", "Jumper", "Thrower"],
-    "Badminton": ["Singles Player", "Doubles Player"],
-    "Tennis": ["Singles Player", "Doubles Player"],
-    "Hockey": ["Goalkeeper", "Defender", "Midfielder", "Forward"],
-    "Volleyball": ["Setter", "Libero", "Spiker", "Blocker"],
-    "Kabaddi": ["Raider", "Defender", "All-Rounder"],
-    "Table Tennis": ["Singles Player", "Doubles Player"],
-    "Swimming": ["Freestyle Specialist", "Backstroke Specialist", "Butterfly Specialist"],
-    "Martial Arts": ["Striker", "Grappler", "Mixed Fighter"]
+    "Football": ["Goalkeeper","Defender","Midfielder","Winger","Striker"],
+    "Cricket": ["Batsman","Bowler","All-Rounder","Wicket Keeper"],
+    "Basketball": ["Point Guard","Shooting Guard","Small Forward","Power Forward","Center"],
+    "Athletics": ["Sprinter","Long Distance Runner","Jumper","Thrower"],
+    "Badminton": ["Singles Player","Doubles Player"],
+    "Tennis": ["Singles Player","Doubles Player"],
+    "Hockey": ["Goalkeeper","Defender","Midfielder","Forward"],
+    "Volleyball": ["Setter","Libero","Spiker","Blocker"],
+    "Kabaddi": ["Raider","Defender","All-Rounder"],
+    "Table Tennis": ["Singles Player","Doubles Player"],
+    "Swimming": ["Freestyle Specialist","Backstroke Specialist","Butterfly Specialist"],
+    "Martial Arts": ["Striker","Grappler","Mixed Fighter"]
 }
 
-# ---------------- POSITION LOGIC ----------------
-
 if sport == "Other":
-    custom_sport = st.text_input("Enter Your Sport")
-    sport = custom_sport if custom_sport else "Other Sport"
-
-    custom_position = st.text_input("Enter Your Role / Position")
-    position = custom_position if custom_position else "General Athlete"
-
+    sport = st.text_input("Enter Your Sport") or "Other Sport"
+    position = st.text_input("Enter Your Role / Position") or "General Athlete"
 else:
-    position = st.selectbox(
-        "Player Position",
-        positions_by_sport.get(sport, ["General Athlete"])
-    )
-
+    position = st.selectbox("Player Position", positions_by_sport.get(sport, ["General Athlete"]))
 
 injury = st.text_input("Injury History / Risk Area (type 'None' if no injury)")
-goal = st.selectbox("Primary Goal", ["Stamina", "Strength", "Speed", "Recovery", "Skill Improvement"])
-diet = st.selectbox("Diet Type", ["Vegetarian", "Non-Vegetarian", "Vegan"])
-intensity = st.selectbox("Training Intensity", ["Low", "Moderate", "High"])
+goal = st.selectbox("Primary Goal", ["Stamina","Strength","Speed","Recovery","Skill Improvement"])
+diet = st.selectbox("Diet Type", ["Vegetarian","Non-Vegetarian","Vegan"])
+intensity = st.selectbox("Training Intensity", ["Low","Moderate","High"])
 weakness = st.text_input("Biggest Weakness (optional)")
 age = st.slider("Age", 10, 50, 15)
 
-# ---------------- FEATURE SELECT ----------------
-feature = st.selectbox(
-    "Choose Coaching Feature",
-    [
-        # Mandatory Features
-        "Full Workout Plan",
-        "Injury Recovery Plan",
-        "Tactical Coaching",
-        "Nutrition Plan",
-        "Warm-up & Cooldown",
-        "Stamina Builder",
-        "Mental Focus Training",
-        "Hydration Strategy",
-        "Skill Drills",
-        "Weekly Training Plan",
+# -------- NEW INPUTS --------
+training_days = st.slider("Training Days / Week", 1, 7, 4)
+session_duration = st.slider("Session Duration (minutes)", 20, 180, 60)
 
-        # Optional Features
-        "Progress Predictor",
-        "Weakness Analyzer",
-        "Match Strategy",
-        "Pre-Match Routine",
-        "Post-Match Recovery",
-        "Motivation Coach",
-        "Injury Risk Predictor",
-        "Mobility & Stretching",
-        "Tournament Preparation",
-        "Hydration Optimizer"
-    ]
-)
+feature = st.selectbox("Choose Coaching Feature", [
+    "Full Workout Plan","Injury Recovery Plan","Tactical Coaching","Nutrition Plan",
+    "Warm-up & Cooldown","Stamina Builder","Mental Focus Training","Hydration Strategy",
+    "Skill Drills","Weekly Training Plan","Progress Predictor"
+])
 
 # ---------------- PROMPT BUILDER ----------------
 def build_prompt():
-    base = f"""
+    return f"""
 You are an expert youth sports coach AI.
-
-IMPORTANT:
-- Write a FULL, long, complete response.
-- Do NOT stop early.
-- Always include multiple sections.
-- Keep response concise and structured.
-- Only include sections relevant to the selected task.
-- Do NOT add unrelated training, workout, or schedule unless requested.
 
 Athlete Profile:
 Sport: {sport}
 Position: {position}
 Age: {age}
+Training Days per Week: {training_days}
+Session Duration: {session_duration} minutes
 Injury History: {injury}
 Training Intensity: {intensity}
 Diet: {diet}
 Goal: {goal}
 Weakness: {weakness}
+
+TASK: {feature}
 """
+
 
     prompts = {
 
@@ -253,76 +202,72 @@ Optimize hydration based on workload and climate.
 
 
 # ---------------- GENERATE OUTPUT ----------------
- if st.button("Generate Coaching Advice"):
+if st.button("Generate Coaching Advice"):
 
     prompt = build_prompt()
 
     with st.spinner("CoachBot analyzing athlete profile..."):
         try:
-            response = model.generate_content(
-                prompt,
-                generation_config={
-                    "temperature": 0.7,
-                    "top_p": 0.9,
-                    "max_output_tokens": 3500
-                }
-            )
-
-            # Collect AI text
-            full_text = ""
-            for part in response.candidates[0].content.parts:
-                full_text += part.text
+            response = model.generate_content(prompt)
+            full_text = response.text
 
             st.success("Coaching Plan Generated")
 
-            # Collapsible AI explanation
             st.write("### 📋 Quick Summary")
             with st.expander("Show Full AI Explanation"):
                 st.write(full_text)
 
-            # ---------------- WORKOUT TABLE ----------------
-            if feature in ["Full Workout Plan", "Weekly Training Plan", "Stamina Builder"]:
-                workout_data = {
-                    "Exercise": ["Warm-up Jog", "Push-ups", "Squats", "Sprints", "Cooldown Stretch"],
-                    "Sets": [1, 3, 3, 5, 1],
-                    "Reps / Time": ["10 mins", "12 reps", "15 reps", "30 sec", "10 mins"]
-                }
-                df = pd.DataFrame(workout_data)
-                st.write("### 🏋️ Workout Plan Table")
+            # -------- WORKOUT TABLE --------
+            if feature in ["Full Workout Plan","Weekly Training Plan","Stamina Builder"]:
+                df = pd.DataFrame({
+                    "Exercise": ["Warm-up Jog","Push-ups","Squats","Sprints","Cooldown Stretch"],
+                    "Sets": [1,3,3,5,1],
+                    "Reps / Time": ["10 mins","12 reps","15 reps","30 sec","10 mins"]
+                })
+                st.write("### 🏋️ Workout Plan")
                 st.dataframe(df)
 
-            # ---------------- WEEKLY SCHEDULE ----------------
+            # -------- WEEKLY SCHEDULE --------
             if feature == "Weekly Training Plan":
-                schedule_data = {
-                    "Day": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-                    "Training Focus": ["Strength", "Cardio", "Skills", "Rest", "Speed", "Match Practice", "Recovery"]
-                }
-                schedule_df = pd.DataFrame(schedule_data)
+                days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+                focus_pool = ["Strength","Cardio","Skills","Speed","Mobility"]
+
+                schedule = []
+                for i in range(7):
+                    if i < training_days:
+                        schedule.append(focus_pool[i % len(focus_pool)])
+                    else:
+                        schedule.append("Rest / Recovery")
+
+                schedule_df = pd.DataFrame({"Day": days,"Training Focus": schedule})
                 st.write("### 📅 Weekly Training Schedule")
                 st.table(schedule_df)
 
-            # ---------------- PROGRESS GRAPH ----------------
-            if feature in ["Progress Predictor", "Stamina Builder"]:
+            # -------- PROGRESS GRAPH --------
+            if feature in ["Progress Predictor","Stamina Builder"]:
                 st.write("### 📈 Expected Progress Over 4 Weeks")
 
-                weeks = [1, 2, 3, 4]
-                performance = [60, 70, 80, 90]
+                weeks = [1,2,3,4]
+                performance = [
+                    50 + training_days*3,
+                    60 + training_days*3,
+                    70 + training_days*3,
+                    80 + training_days*3
+                ]
 
                 plt.figure()
                 plt.plot(weeks, performance, marker="o")
                 plt.xlabel("Week")
                 plt.ylabel("Performance Level")
                 plt.title("Training Progress Prediction")
-
                 st.pyplot(plt)
 
-            # ---------------- NUTRITION TABLE ----------------
+            # -------- NUTRITION TABLE --------
             if feature == "Nutrition Plan":
-                nutrition_data = {
-                    "Meal": ["Breakfast", "Lunch", "Dinner", "Snacks"],
-                    "Focus": ["Carbs + Protein", "Balanced", "Protein Heavy", "Fruits & Nuts"]
-                }
-                nutrition_df = pd.DataFrame(nutrition_data)
+                nutrition_df = pd.DataFrame({
+                    "Meal": ["Breakfast","Lunch","Dinner","Snacks"],
+                    "Focus": ["Carbs + Protein","Balanced","Protein Heavy","Fruits & Nuts"]
+                })
                 st.write("### 🥗 Nutrition Guide")
                 st.dataframe(nutrition_df)
 
