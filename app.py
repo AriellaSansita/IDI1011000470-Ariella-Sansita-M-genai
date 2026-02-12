@@ -2,19 +2,19 @@ import streamlit as st
 import google.generativeai as genai
 
 # ---------------- CONFIG ----------------
-genai.configure(api_key="AIzaSyB9VfhS0_sApB2TBRzEi06G1lZlwgDOKnA")
+genai.configure(api_key="YOUR_GEMINI_API_KEY")
 
-model = genai.GenerativeModel("gemini-2.5-flash")
+model = genai.GenerativeModel("gemini-1.5-pro")
 
 st.set_page_config(page_title="CoachBot AI", layout="wide")
 
 st.title("🏆 CoachBot AI - Smart Fitness Assistant")
-st.write("Personalized AI Coach for Young Athletes")
+st.write("AI-powered personalized coach for young athletes")
 
 # ---------------- USER INPUT ----------------
-sport = st.selectbox("Select Sport", ["Football", "Cricket", "Basketball", "Athletics", "Other"])
+sport = st.selectbox("Sport", ["Football", "Cricket", "Basketball", "Athletics", "Other"])
 position = st.text_input("Player Position")
-injury = st.text_input("Injury History / Risk Area (write 'None' if no injury)")
+injury = st.text_input("Injury History / Risk Area (type 'None' if no injury)")
 goal = st.selectbox("Primary Goal", ["Stamina", "Strength", "Speed", "Recovery", "Skill Improvement"])
 diet = st.selectbox("Diet Type", ["Vegetarian", "Non-Vegetarian", "Vegan"])
 intensity = st.selectbox("Training Intensity", ["Low", "Moderate", "High"])
@@ -25,7 +25,7 @@ age = st.slider("Age", 10, 25, 15)
 feature = st.selectbox(
     "Choose Coaching Feature",
     [
-        # Mandatory
+        # Mandatory Features
         "Full Workout Plan",
         "Injury Recovery Plan",
         "Tactical Coaching",
@@ -37,7 +37,7 @@ feature = st.selectbox(
         "Skill Drills",
         "Weekly Training Plan",
 
-        # Optional
+        # Optional Features
         "Progress Predictor",
         "Weakness Analyzer",
         "Match Strategy",
@@ -54,66 +54,172 @@ feature = st.selectbox(
 # ---------------- PROMPT BUILDER ----------------
 def build_prompt():
     base = f"""
-    You are a professional youth sports coach AI.
+You are an expert professional youth sports coach AI.
 
-    Athlete Profile:
-    Sport: {sport}
-    Position: {position}
-    Age: {age}
-    Injury History: {injury}
-    Training Intensity: {intensity}
-    Diet: {diet}
-    Goal: {goal}
-    Weakness: {weakness}
-    """
+STRICT INSTRUCTIONS:
+- Provide detailed, structured, and personalized coaching.
+- DO NOT use generic motivational openings.
+- DO NOT repeat phrases.
+- Focus on practical, real training advice.
+- Adapt based on injury, position, goal, and intensity.
+- Use bullet points and clear sections.
+
+Athlete Profile:
+Sport: {sport}
+Position: {position}
+Age: {age}
+Injury History: {injury}
+Training Intensity: {intensity}
+Diet: {diet}
+Goal: {goal}
+Weakness: {weakness}
+"""
 
     prompts = {
-        # Mandatory
-        "Full Workout Plan": "Generate a full-body personalized workout plan.",
-        "Injury Recovery Plan": "Create a safe recovery training program avoiding injury risk.",
-        "Tactical Coaching": "Provide tactical and decision-making coaching tips.",
-        "Nutrition Plan": "Generate a weekly athlete nutrition plan.",
-        "Warm-up & Cooldown": "Create a warm-up and cooldown routine for injury prevention.",
-        "Stamina Builder": "Design a stamina and endurance improvement program.",
-        "Mental Focus Training": "Provide mental training and focus strategies for competition.",
-        "Hydration Strategy": "Suggest hydration and electrolyte balance strategy.",
-        "Skill Drills": "Generate skill improvement drills specific to the athlete.",
-        "Weekly Training Plan": "Create a balanced weekly training schedule.",
 
-        # Optional
-        "Progress Predictor": "Predict athlete improvement over 4 weeks and adjust training.",
-        "Weakness Analyzer": "Analyze weakness and suggest corrective exercises.",
-        "Match Strategy": "Generate match-day strategy and positioning advice.",
-        "Pre-Match Routine": "Create a pre-match preparation routine.",
-        "Post-Match Recovery": "Generate post-match recovery and muscle repair plan.",
-        "Motivation Coach": "Provide motivation and discipline coaching.",
-        "Injury Risk Predictor": "Identify possible injury risks and prevention strategies.",
-        "Mobility & Stretching": "Generate mobility and flexibility routine.",
-        "Tournament Preparation": "Create a 2-week tournament preparation plan.",
-        "Hydration Optimizer": "Optimize hydration schedule based on training intensity."
+        # -------- Mandatory --------
+        "Full Workout Plan": """
+Generate a COMPLETE structured workout:
+- Warm-up
+- Main exercises
+- Sets & reps
+- Safety notes
+- Recovery tips
+""",
+
+        "Injury Recovery Plan": """
+Create a SAFE injury recovery plan:
+- Allowed exercises
+- Avoid risky movements
+- Gradual progression
+- Injury prevention
+""",
+
+        "Tactical Coaching": """
+Provide POSITION-SPECIFIC tactical advice:
+- Positioning
+- Decision making
+- Common mistakes
+- Match intelligence
+""",
+
+        "Nutrition Plan": """
+Generate a WEEKLY athlete nutrition plan:
+- Meals (breakfast/lunch/dinner)
+- Protein & recovery focus
+- Hydration
+""",
+
+        "Warm-up & Cooldown": """
+Create warm-up and cooldown routine:
+- Dynamic warmup
+- Mobility drills
+- Stretching
+- Injury prevention
+""",
+
+        "Stamina Builder": """
+Design a 4-week stamina program:
+- Cardio progression
+- Intensity control
+- Recovery balance
+""",
+
+        "Mental Focus Training": """
+Provide mental performance coaching:
+- Focus drills
+- Confidence training
+- Pre-match mindset
+""",
+
+        "Hydration Strategy": """
+Provide hydration & electrolyte strategy:
+- Daily intake
+- Training hydration
+- Recovery hydration
+""",
+
+        "Skill Drills": """
+Generate skill-specific drills:
+- Technique improvement
+- Drill structure
+- Progression
+""",
+
+        "Weekly Training Plan": """
+Generate FULL weekly training schedule:
+- Training days
+- Recovery days
+- Skill + fitness balance
+""",
+
+        # -------- Optional --------
+        "Progress Predictor": """
+Predict performance improvement over 4 weeks and adjust training.
+""",
+
+        "Weakness Analyzer": """
+Analyze weakness and create corrective training plan.
+""",
+
+        "Match Strategy": """
+Generate match-day strategy and tactical positioning advice.
+""",
+
+        "Pre-Match Routine": """
+Create complete pre-match preparation routine.
+""",
+
+        "Post-Match Recovery": """
+Generate post-match recovery and muscle repair plan.
+""",
+
+        "Motivation Coach": """
+Provide discipline and motivation guidance with practical steps.
+""",
+
+        "Injury Risk Predictor": """
+Identify possible injury risks and prevention strategies.
+""",
+
+        "Mobility & Stretching": """
+Generate flexibility and mobility improvement routine.
+""",
+
+        "Tournament Preparation": """
+Create a 2-week peak performance tournament preparation plan.
+""",
+
+        "Hydration Optimizer": """
+Optimize hydration based on workload and climate.
+"""
     }
 
-    return base + "\nTask: " + prompts[feature]
+    return base + "\nTASK:\n" + prompts[feature]
 
 
-# ---------------- GENERATE ----------------
+# ---------------- GENERATE OUTPUT ----------------
 if st.button("Generate Coaching Advice"):
 
-    prompt = build_prompt()
+    if position == "":
+        st.warning("Please enter player position")
+    else:
+        prompt = build_prompt()
 
-    with st.spinner("CoachBot is thinking..."):
-        try:
-            response = model.generate_content(
-                prompt,
-                generation_config={
-                    "temperature": 0.6,
-                    "top_p": 0.9,
-                    "max_output_tokens": 800
-                }
-            )
-            st.success("CoachBot Advice Generated")
-            st.write(response.text)
+        with st.spinner("CoachBot analyzing athlete profile..."):
+            try:
+                response = model.generate_content(
+                    prompt,
+                    generation_config={
+                        "temperature": 0.7,
+                        "top_p": 0.9,
+                        "max_output_tokens": 900
+                    }
+                )
 
-        except Exception as e:
-            st.error(f"Error: {e}")
+                st.success("Coaching Plan Generated")
+                st.write(response.text)
+
+            except Exception as e:
+                st.error(f"Error: {e}")
 
