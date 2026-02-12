@@ -3,10 +3,11 @@ import google.generativeai as genai
 import pandas as pd
 import matplotlib.pyplot as plt
 
+
 # ---------------- CONFIG ----------------
 genai.configure(api_key="AIzaSyBv2dnTTYh3CPHmnRCDO8NQeOcAyRIectw")
 
-model = genai.GenerativeModel("gemini-2.5-flash")  # Fixed: Corrected model name from "gemini-2.5-flash" to "gemini-1.5-flash" (assuming this is the intended model; adjust if needed)
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 st.set_page_config(page_title="CoachBot AI", layout="wide")
 
@@ -65,6 +66,7 @@ else:
         "Player Position",
         positions_by_sport.get(sport, ["General Athlete"])
     )
+
 
 injury = st.text_input("Injury History / Risk Area (type 'None' if no injury)")
 goal = st.selectbox("Primary Goal", ["Stamina", "Strength", "Speed", "Recovery", "Skill Improvement"])
@@ -128,6 +130,7 @@ Weakness: {weakness}
 """
 
     prompts = {
+
         # -------- Mandatory --------
         "Full Workout Plan": """
 Generate a COMPLETE structured workout:
@@ -247,8 +250,10 @@ Optimize hydration based on workload and climate.
 
     return base + "\nTASK:\n" + prompts[feature]
 
+
+
 # ---------------- GENERATE OUTPUT ----------------
-if st.button("Generate Coaching Advice"):  # Fixed: Removed leading space before "if" (syntax error)
+ if st.button("Generate Coaching Advice"):
 
     prompt = build_prompt()
 
@@ -264,7 +269,9 @@ if st.button("Generate Coaching Advice"):  # Fixed: Removed leading space before
             )
 
             # Collect AI text
-            full_text = response.text  # Fixed: Simplified to use response.text directly (the loop over parts was incorrect for text-only responses)
+            full_text = ""
+            for part in response.candidates[0].content.parts:
+                full_text += part.text
 
             st.success("Coaching Plan Generated")
 
@@ -307,7 +314,7 @@ if st.button("Generate Coaching Advice"):  # Fixed: Removed leading space before
                 plt.ylabel("Performance Level")
                 plt.title("Training Progress Prediction")
 
-                st.pyplot(plt.gcf())  # Fixed: Changed to st.pyplot(plt.gcf()) for better compatibility with Streamlit
+                st.pyplot(plt)
 
             # ---------------- NUTRITION TABLE ----------------
             if feature == "Nutrition Plan":
