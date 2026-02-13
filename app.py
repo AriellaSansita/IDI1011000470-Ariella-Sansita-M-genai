@@ -141,17 +141,38 @@ if st.button("Generate Coaching Advice"):
     if not selected_features:
         st.warning("Please select at least one feature!")
     else:
-        for feature in selected_features:
-            prompt = build_prompt(feature)
-            with st.spinner(f"CoachBot generating {feature}..."):
-                try:
-                    response = model.generate_content(prompt)
-                    full_text = response.text
 
-                    st.success(f"{feature} Generated")
-                    st.write(f"### 📋 {feature} Summary")
-                    with st.expander("Show Full AI Explanation"):
-                        st.write(full_text)
+    if st.button("Generate Coaching Advice"):
+    if not selected_features:
+        st.warning("Please select at least one feature!")
+    else:
+        # Combine ALL selected features into ONE prompt
+        combined_prompt = ""
+        for feature in selected_features:
+            combined_prompt += f"\n--- {feature} ---\n"
+            combined_prompt += build_prompt(feature) + "\n"
+
+        with st.spinner("CoachBot generating your complete training plan..."):
+            try:
+                response = model.generate_content(combined_prompt)
+                full_text = response.text
+
+                st.success("Coaching Advice Generated")
+
+                st.write("## 📋 Complete AI Coaching Output")
+                with st.expander("Show Full AI Explanation"):
+                    st.write(full_text)
+
+            except Exception as e:
+                if "429" in str(e):
+                    import time
+                    st.warning("Quota hit. Waiting 25 seconds before retry...")
+                    time.sleep(25)
+                    response = model.generate_content(combined_prompt)
+                    st.write(response.text)
+                else:
+                    st.error(f"Error: {e}")
+
 
                     # Show dynamic workout table
                     if feature in ["Full Workout Plan","Stamina Builder","Weekly Training Plan"]:
