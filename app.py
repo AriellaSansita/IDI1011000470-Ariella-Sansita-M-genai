@@ -1,7 +1,6 @@
 import streamlit as st
 import google.generativeai as genai
 import pandas as pd
-import matplotlib.pyplot as plt
 
 # ---------------- CONFIG ----------------
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
@@ -46,11 +45,10 @@ diet = st.selectbox("Diet Type", ["Vegetarian","Non-Vegetarian","Vegan"])
 intensity = st.selectbox("Training Intensity", ["Low","Moderate","High"])
 weakness = st.text_input("Biggest Weakness (optional)")
 age = st.slider("Age", 10, 50, 15)
-
 training_days = st.slider("Training Days / Week", 1, 7, 4)
 session_duration = st.slider("Session Duration (minutes)", 20, 180, 60)
 
-# ---------------- SIDEBAR FEATURES ----------------
+# ---------------- FEATURES ----------------
 st.sidebar.header("Select Coaching Features")
 
 all_features = [
@@ -65,9 +63,6 @@ all_features = [
 
 selected_features = [f for f in all_features if st.sidebar.checkbox(f, True)]
 
-if st.sidebar.button("Reset All"):
-    st.rerun()
-
 # ---------------- WORKOUT TABLE ----------------
 def generate_workout_table():
 
@@ -80,43 +75,39 @@ def generate_workout_table():
     ]
 
     inj = injury.lower()
-
-    # Remove arm exercises if arm injury
-    if any(x in inj for x in ["arm", "wrist", "elbow", "shoulder", "fracture", "broken"]):
+    if any(x in inj for x in ["arm","wrist","elbow","shoulder","fracture","broken"]):
         exercises = [e for e in exercises if not e["uses_arm"]]
 
-    if len(exercises) == 0:
-        return pd.DataFrame({"Exercise": ["Rest / Recovery"], "Sets": ["-"], "Reps / Time": ["-"]})
-
     rows = []
+    non_cardio = [e for e in exercises if e["type"] != "cardio"]
+    cardio = [e for e in exercises if e["type"] == "cardio"]
 
-    for ex in exercises:
-        if ex["type"] == "cardio":
-            time = max(8, session_duration // len(exercises))
-            rows.append({
-                "Exercise": ex["name"],
-                "Sets": "-",
-                "Reps / Time": f"{time} min steady pace"
-            })
+    # reserve time for strength/core
+    strength_time = len(non_cardio) * 1
+    cardio_time = max(5, session_duration - strength_time)
+
+    for ex in non_cardio:
+        if intensity == "Low":
+            sets, reps = 1, "10-12"
+        elif intensity == "Moderate":
+            sets, reps = 2, "12-15"
         else:
-            if intensity == "Low":
-                sets, reps = 1, "10-12"
-            elif intensity == "Moderate":
-                sets, reps = 2, "12-15"
-            else:
-                sets, reps = 3, "15-20"
+            sets, reps = 3, "15-20"
 
-            rows.append({
-                "Exercise": ex["name"],
-                "Sets": sets,
-                "Reps / Time": f"{reps} reps"
-            })
+        rows.append({"Exercise": ex["name"], "Sets": sets, "Reps / Time": f"{reps} reps"})
+
+    for ex in cardio:
+        rows.append({"Exercise": ex["name"], "Sets": "-", "Reps / Time": f"{cardio_time} min steady pace"})
 
     return pd.DataFrame(rows)
-# ---------------- PROMPT BUILDER ----------------
+
+# ---------------- PROMPT ----------------
 def build_prompt():
+
+    feature_text = ", ".join(selected_features)
+
     return f"""
-You are a youth sports coach AI. Keep response SHORT, practical, and structured.
+You are a youth sports coach AI. Be SHORT, structured, practical.
 
 Athlete:
 Sport: {sport}
@@ -127,38 +118,44 @@ Injury: {injury}
 Intensity: {intensity}
 Diet: {diet}
 Training Days: {training_days}
-Session Duration: {session_duration} min
+Session Duration: {session_duration}
+
+Focus ONLY on these features: {feature_text}
 
 Rules:
-- Max 250 words
-- No long explanations
-- No medical lecture
-- Bullet points only
-- Focus on ACTION
+- Max 200 words
+- Bullet points
+- No lecture
+- Practical actions only
 
 Sections:
-1. Recovery (if injury exists)
+1. Recovery (only if injury)
 2. Workout Focus
 3. Weekly Advice
-4. Diet Tips
+4. Diet / Hydration
 """
 
-# ---------------- SAFE GEMINI CALL ----------------
+# ---------------- SAFE GEMINI ----------------
 def get_ai_text(prompt):
 
     try:
         response = model.generate_content(prompt)
 
+        if not response or not response.candidates:
+            return "⚠️ AI returned no candidates."
+
+        candidate = response.candidates[0]
+
+        if candidate.finish_reason != 1 and not candidate.content:
+            return "⚠️ AI blocked or empty response."
+
         text = ""
-        if response and response.candidates:
-            content = response.candidates[0].content
-            if content and content.parts:
-                text = "".join([p.text for p in content.parts if hasattr(p, "text")])
+        if candidate.content and candidate.content.parts:
+            for part in candidate.content.parts:
+                if hasattr(part, "text") and part.text:
+                    text += part.text
 
-        if not text.strip():
-            return "⚠️ AI returned empty response. Try again later."
-
-        return text
+        return text.strip() if text else "⚠️ Empty AI output."
 
     except Exception as e:
         return f"Error: {e}"
@@ -169,10 +166,8 @@ if st.button("Generate Coaching Advice"):
     if not selected_features:
         st.warning("Select at least one feature.")
     else:
-        prompt = build_prompt()
-
-        with st.spinner("Generating coaching plan..."):
-            output = get_ai_text(prompt)
+        with st.spinner("Generating..."):
+            output = get_ai_text(build_prompt())
 
         st.subheader("📋 AI Coaching Output")
         st.write(output)
@@ -183,32 +178,24 @@ if st.button("Generate Coaching Advice"):
 
         if "Weekly Training Plan" in selected_features:
             st.subheader("📅 Weekly Training Schedule")
-        
+
             days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
-        
             workout_types = [
                 "Stamina + Core",
-                "Lower Body Strength",
-                "Cardio Intervals",
-                "Mobility + Recovery",
-                "Speed & Agility",
+                "Strength",
+                "Cardio",
+                "Mobility",
+                "Speed",
                 "Technique",
-                "Active Recovery"
+                "Recovery"
             ]
-        
-            schedule = []
-            for i in range(7):
-                if i < training_days:
-                    schedule.append(workout_types[i])
-                else:
-                    schedule.append("Rest")
-        
-            df = pd.DataFrame({"Day": days, "Focus": schedule})
-            st.table(df)
+
+            schedule = [workout_types[i] if i < training_days else "Rest" for i in range(7)]
+            st.table(pd.DataFrame({"Day": days, "Focus": schedule}))
 
         if "Nutrition Plan" in selected_features:
             st.subheader("🥗 Nutrition Guide")
             st.dataframe(pd.DataFrame({
                 "Meal":["Breakfast","Lunch","Dinner","Snacks"],
-                "Focus":["Carbs+Protein","Balanced","Protein Rich","Fruits+Nuts"]
+                "Focus":["Carbs + Protein","Balanced","Protein Rich","Fruits + Nuts"]
             }))
