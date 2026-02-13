@@ -71,36 +71,48 @@ if st.sidebar.button("Reset All"):
 # ---------------- WORKOUT TABLE ----------------
 def generate_workout_table():
 
-    exercises = ["Push-ups","Squats","Plank","Lunges","Jogging"]
+    exercises = [
+        {"name": "Push-ups", "type": "strength", "uses_arm": True},
+        {"name": "Squats", "type": "strength", "uses_arm": False},
+        {"name": "Plank", "type": "core", "uses_arm": True},
+        {"name": "Lunges", "type": "strength", "uses_arm": False},
+        {"name": "Jogging", "type": "cardio", "uses_arm": False},
+    ]
+
     inj = injury.lower()
 
-    if "knee" in inj:
-        exercises = [e for e in exercises if e not in ["Squats","Lunges"]]
-    if "shoulder" in inj:
-        exercises = [e for e in exercises if e != "Push-ups"]
+    # Remove arm exercises if arm injury
+    if any(x in inj for x in ["arm", "wrist", "elbow", "shoulder", "fracture", "broken"]):
+        exercises = [e for e in exercises if not e["uses_arm"]]
 
-    # Prevent empty list crash
     if len(exercises) == 0:
-        exercises = ["Light Walking","Mobility Stretch","Breathing Exercise"]
+        return pd.DataFrame({"Exercise": ["Rest / Recovery"], "Sets": ["-"], "Reps / Time": ["-"]})
 
-    if intensity == "Low":
-        sets = [1]*len(exercises)
-        reps = ["10-12"]*len(exercises)
-    elif intensity == "Moderate":
-        sets = [2]*len(exercises)
-        reps = ["12-15"]*len(exercises)
-    else:
-        sets = [3]*len(exercises)
-        reps = ["15-20"]*len(exercises)
+    rows = []
 
-    time_per = max(5, session_duration // len(exercises))
+    for ex in exercises:
+        if ex["type"] == "cardio":
+            time = max(8, session_duration // len(exercises))
+            rows.append({
+                "Exercise": ex["name"],
+                "Sets": "-",
+                "Reps / Time": f"{time} min steady pace"
+            })
+        else:
+            if intensity == "Low":
+                sets, reps = 1, "10-12"
+            elif intensity == "Moderate":
+                sets, reps = 2, "12-15"
+            else:
+                sets, reps = 3, "15-20"
 
-    return pd.DataFrame({
-        "Exercise": exercises,
-        "Sets": sets,
-        "Reps / Time": [f"{r} reps / ~{time_per} min" for r in reps]
-    })
+            rows.append({
+                "Exercise": ex["name"],
+                "Sets": sets,
+                "Reps / Time": f"{reps} reps"
+            })
 
+    return pd.DataFrame(rows)
 # ---------------- PROMPT BUILDER ----------------
 def build_prompt():
     return f"""
