@@ -116,19 +116,32 @@ def generate_workout_table():
 # ---------------- PROMPT BUILDER ----------------
 def build_prompt():
     return f"""
-You are an expert youth sports coach AI.
+You are a youth sports coach AI. Keep response SHORT, practical, and structured.
 
-Athlete Profile:
+Athlete:
 Sport: {sport}
 Position: {position}
 Age: {age}
-Training Days: {training_days}
-Session Duration: {session_duration} min
+Goal: {goal}
 Injury: {injury}
 Intensity: {intensity}
 Diet: {diet}
-Goal: {goal}
-Weakness: {weakness}
+Training Days: {training_days}
+Session Duration: {session_duration} min
+
+Rules:
+- Max 250 words
+- No long explanations
+- No medical lecture
+- Give bullet points only
+- Focus on ACTION
+
+Sections:
+1. Recovery (if injury exists)
+2. Workout Focus
+3. Weekly Advice
+4. Diet Tips
+"""
 
 Provide detailed coaching guidance for:
 {", ".join(selected_features)}
@@ -175,11 +188,29 @@ if st.button("Generate Coaching Advice"):
             st.dataframe(generate_workout_table())
 
         if "Weekly Training Plan" in selected_features:
-            days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
-            focus = ["Strength","Cardio","Skills","Speed","Mobility","Technique","Agility"]
-            focus = focus[:training_days] + ["Rest"]*(7-training_days)
             st.subheader("📅 Weekly Training Schedule")
-            st.table(pd.DataFrame({"Day": days, "Focus": focus}))
+        
+            days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+        
+            workout_types = [
+                "Stamina + Core",
+                "Lower Body Strength",
+                "Cardio Intervals",
+                "Mobility + Recovery",
+                "Speed & Agility",
+                "Technique",
+                "Active Recovery"
+            ]
+        
+            schedule = []
+            for i in range(7):
+                if i < training_days:
+                    schedule.append(workout_types[i])
+                else:
+                    schedule.append("Rest")
+        
+            df = pd.DataFrame({"Day": days, "Focus": schedule})
+            st.table(df)
 
         if "Nutrition Plan" in selected_features:
             st.subheader("🥗 Nutrition Guide")
