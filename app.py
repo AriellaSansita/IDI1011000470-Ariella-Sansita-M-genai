@@ -64,7 +64,7 @@ for f in all_features:
         selected_features.append(f)
 
 if st.sidebar.button("Reset All"):
-    st.experimental_rerun()
+    st.rerun()
 
 # ---------------- DYNAMIC WORKOUT GENERATOR ----------------
 def generate_workout_table(sport, position, goal, intensity, duration):
