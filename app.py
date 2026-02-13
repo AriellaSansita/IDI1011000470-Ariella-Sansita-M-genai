@@ -3,10 +3,11 @@ import google.generativeai as genai
 import pandas as pd
 import matplotlib.pyplot as plt
 import time
+from google.api_core.exceptions import ResourceExhausted  # Import the specific exception
 
 # ---------------- CONFIG ----------------
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-model = genai.GenerativeModel("gemini-2.5-flash")  # Updated to a valid model name; adjust if needed
+model = genai.GenerativeModel("gemini-1.5-flash")  # Updated to a valid model name; adjust if needed
 
 st.set_page_config(page_title="CoachBot AI", layout="wide")
 st.title("🏆 CoachBot AI - Smart Fitness Assistant")
@@ -201,12 +202,25 @@ if st.button("Generate Coaching Advice"):
             try:
                 response = model.generate_content(prompt)
                 output = response.text
-            except Exception as e:
-                if "429" in str(e):
-                    st.warning("Quota reached. Waiting 25s...")
-                    time.sleep(25)
+            except ResourceExhausted as e:  # Handle ResourceExhausted specifically
+                st.warning("Quota reached. Waiting 60s before retrying...")  # Increased wait time
+                time.sleep(60)  # Increased from 25 to 60 seconds
+                try:
                     response = model.generate_content(prompt)
                     output = response.text
+                except Exception as retry_e:
+                    st.error(f"Retry failed: {retry_e}")
+                    st.stop()
+            except Exception as e:
+                if "429" in str(e):  # Keep the original check for rate limits
+                    st.warning("Rate limit reached. Waiting 25s...")
+                    time.sleep(25)
+                    try:
+                        response = model.generate_content(prompt)
+                        output = response.text
+                    except Exception as retry_e:
+                        st.error(f"Retry failed: {retry_e}")
+                        st.stop()
                 else:
                     st.error(f"An error occurred: {e}")
                     st.stop()
