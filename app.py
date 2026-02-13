@@ -158,8 +158,8 @@ if st.button("Generate Coaching Advice"):
                     st.write(full_text)
 
             except Exception as e:
+                import time
                 if "429" in str(e):
-                    import time
                     st.warning("Quota hit. Waiting 25 seconds before retry...")
                     time.sleep(25)
                     response = model.generate_content(combined_prompt)
