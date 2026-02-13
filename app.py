@@ -133,7 +133,7 @@ Rules:
 - Max 250 words
 - No long explanations
 - No medical lecture
-- Give bullet points only
+- Bullet points only
 - Focus on ACTION
 
 Sections:
@@ -142,11 +142,6 @@ Sections:
 3. Weekly Advice
 4. Diet Tips
 """
-
-Provide detailed coaching guidance for:
-{", ".join(selected_features)}
-
-Structure clearly with headings and actionable steps.
 
 # ---------------- SAFE GEMINI CALL ----------------
 def get_ai_text(prompt):
