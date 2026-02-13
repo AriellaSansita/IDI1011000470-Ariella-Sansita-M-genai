@@ -142,6 +142,7 @@ Sections:
 3. Weekly Advice
 4. Diet Tips
 """
+"""
 
 Provide detailed coaching guidance for:
 {", ".join(selected_features)}
