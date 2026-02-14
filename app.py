@@ -161,24 +161,69 @@ def get_ai_text(prompt):
         return f"Error: {e}"
 
 # ---------------- NUTRITION ----------------
-def generate_nutrition():
+def generate_workout_table():
 
-    carbs = ["Oats","Brown Rice","Quinoa","Sweet Potato","Whole Wheat"]
-    protein_veg = ["Lentils","Chickpeas","Tofu","Tempeh","Beans"]
-    protein_nonveg = ["Eggs","Chicken","Fish","Paneer"]
-    fats = ["Nuts","Seeds","Olive Oil","Peanut Butter"]
+    # ----- Exercise Pool -----
+    strength_pool = [
+        "Squats",
+        "Lunges",
+        "Glute Bridges",
+        "Calf Raises",
+        "Step-ups",
+        "Wall Sit",
+        "Romanian Deadlift (Bodyweight)"
+    ]
 
-    protein = protein_veg if diet != "Non-Vegetarian" else protein_nonveg
+    cardio_options = [
+        "Cycling",
+        "Brisk Walk",
+        "Treadmill Walk",
+        "Elliptical (legs only)"
+    ]
 
-    return pd.DataFrame({
-        "Meal":["Breakfast","Lunch","Dinner","Snacks"],
-        "Plan":[
-            f"{random.choice(carbs)} + {random.choice(protein)}",
-            f"Balanced: {random.choice(carbs)}, {random.choice(protein)}, Veggies",
-            f"Recovery: {random.choice(protein)} + Veggies",
-            f"{random.choice(fats)} + Fruit"
-        ]
+    # Pick EXACTLY 3 strength exercises (matches your AI output rule)
+    strength_exercises = random.sample(strength_pool, 3)
+    cardio_exercise = random.choice(cardio_options)
+
+    # ----- Time Structure -----
+    warmup = 10
+    cooldown = 10
+    usable = session_duration - warmup - cooldown
+
+    # Perfect 50/50 split
+    cardio_block = usable // 2
+    strength_block = usable - cardio_block
+
+    # Even strength distribution (3 exercises only)
+    time_per_strength = round(strength_block / 3, 1)
+
+    # ----- Sets by Intensity -----
+    if intensity == "Low":
+        sets = 2
+    elif intensity == "Moderate":
+        sets = 3
+    else:
+        sets = 4
+
+    rows = []
+
+    # ----- Strength Rows -----
+    for ex in strength_exercises:
+        rows.append({
+            "Exercise": ex,
+            "Sets": sets,
+            "Reps / Time": f"12-15 reps (~{time_per_strength} min)"
+        })
+
+    # ----- Cardio Row -----
+    rows.append({
+        "Exercise": cardio_exercise,
+        "Sets": "-",
+        "Reps / Time": f"{cardio_block} min steady pace"
     })
+
+    return pd.DataFrame(rows)
+
 
 # ---------------- GENERATE ----------------
 if st.button("Generate Coaching Advice"):
