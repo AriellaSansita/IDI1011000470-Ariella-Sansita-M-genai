@@ -230,7 +230,7 @@ if st.button("Generate Coaching Advice"):
         st.subheader("🥗 Nutrition Guide")
         st.dataframe(generate_nutrition())
 
-    if st.button("Reset All Inputs"):
+if st.button("Reset All Inputs"):
         # Only reset keys that you actually control
         keys_to_reset = [
             "sport","position","injury","goal","diet",
