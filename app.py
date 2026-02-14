@@ -235,6 +235,29 @@ def generate_workout_table():
 if "last_output" not in st.session_state:
     st.session_state.last_output = ""
 
+# ---------------- NUTRITION ----------------
+def generate_nutrition():
+
+    carbs = ["Oats","Brown Rice","Quinoa","Sweet Potato","Whole Wheat"]
+    protein_veg = ["Lentils","Chickpeas","Tofu","Tempeh","Beans","Paneer"]
+    protein_nonveg = ["Eggs","Chicken","Fish"]
+    fats = ["Nuts","Seeds","Olive Oil","Peanut Butter"]
+
+    if diet == "Non-Vegetarian":
+        protein = protein_nonveg
+    else:
+        protein = protein_veg
+
+    return pd.DataFrame({
+        "Meal": ["Breakfast","Lunch","Dinner","Snacks"],
+        "Plan": [
+            f"{random.choice(carbs)} + {random.choice(protein)}",
+            f"Balanced: {random.choice(carbs)}, {random.choice(protein)}, Vegetables",
+            f"Recovery: {random.choice(protein)} + Vegetables",
+            f"{random.choice(fats)} + Fruit"
+        ]
+    })
+
 # ---------------- GENERATE ----------------
 if st.button("Generate Coaching Advice"):
 
