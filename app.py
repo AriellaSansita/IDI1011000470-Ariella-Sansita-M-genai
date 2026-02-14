@@ -3,6 +3,10 @@ import google.generativeai as genai
 import pandas as pd
 import random
 
+# ---------------- SESSION STATE DEFAULTS ----------------
+if "reset_trigger" not in st.session_state:
+    st.session_state.reset_trigger = False
+
 # ---------------- CONFIG ----------------
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 model = genai.GenerativeModel("gemini-2.5-flash")
@@ -62,33 +66,52 @@ selected_feature = st.selectbox("Choose Coaching Feature", features)
 
 # ---------------- WORKOUT TABLE ----------------
 def generate_workout_table():
-
-    strength_pool = [
+    # ---------------- Exercise Pools ----------------
+    general_strength = [
         "Squats","Lunges","Glute Bridges","Calf Raises",
         "Step-ups","Wall Sit","Reverse Crunch",
-        "Dead Bug (legs only)","Leg Raises","Hollow Hold"
+        "Dead Bug (legs only)","Leg Raises","Hollow Hold",
+        "Push-ups","Plank Variations","Shoulder Taps","Hip Mobility Drill"
     ]
 
     cardio_options = [
         "Cycling","Brisk Walk","Treadmill Walk",
-        "Elliptical (legs only)","Stationary Bike"
+        "Elliptical (legs only)","Stationary Bike","Jogging","Rowing"
     ]
 
-    strength_exercises = random.sample(strength_pool, 5)
+    # ---------------- Dynamic Selection ----------------
+    strength_pool = general_strength.copy()
     cardio_exercise = random.choice(cardio_options)
 
+    # Add a few extra generic exercises based on role input
+    role_words = position.lower().split()
+    if len(role_words) > 0:
+        # Just some generic extra variety for any role input
+        strength_pool += ["Plank Variations","Push-ups","Step-ups","Rotational Twists"]
+
+    # Remove exercises that may aggravate injury
+    if injury and injury.lower() != "none":
+        strength_pool = [
+            ex for ex in strength_pool
+            if "Jump" not in ex and "Lunge" not in ex and "Step-ups" not in ex
+        ]
+
+    # Pick up to 5 exercises randomly
+    strength_exercises = random.sample(strength_pool, min(5, len(strength_pool)))
+
+    # ---------------- Time Allocation ----------------
     warmup = 10
     cooldown = 10
     usable = max(session_duration - warmup - cooldown, 0)
-
     cardio_block = usable // 2
     strength_block = usable - cardio_block
-    time_per_strength = round(strength_block / 5, 1) if strength_block else 0
+    time_per_strength = round(strength_block / len(strength_exercises), 1) if strength_exercises else 0
 
+    # ---------------- Sets Based on Intensity ----------------
     sets = {"Low":2,"Moderate":3,"High":4}[intensity]
 
+    # ---------------- Build Table ----------------
     rows = []
-
     for ex in strength_exercises:
         rows.append({
             "Exercise": ex,
@@ -206,3 +229,9 @@ if st.button("Generate Coaching Advice"):
     if selected_feature == "Nutrition Plan":
         st.subheader("🥗 Nutrition Guide")
         st.dataframe(generate_nutrition())
+
+if st.button("Reset All Inputs"):
+    for key in st.session_state.keys():
+        st.session_state[key] = None  # clear all session state values
+    st.experimental_rerun()  # refresh the app to reset inputs
+
