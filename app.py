@@ -67,48 +67,47 @@ selected_feature = st.selectbox("Choose Coaching Feature", features)
 # ---------------- WORKOUT TABLE ----------------
 def generate_workout_table():
     # ---------------- Exercise Pools ----------------
-    general_strength = [
-        "Squats","Lunges","Glute Bridges","Calf Raises",
-        "Step-ups","Wall Sit","Reverse Crunch",
-        "Dead Bug (legs only)","Leg Raises","Hollow Hold",
-        "Push-ups","Plank Variations","Shoulder Taps","Hip Mobility Drill"
-    ]
+    strength_general = {
+        "Lower Body": ["Squats","Lunges","Glute Bridges","Calf Raises","Step-ups","Wall Sit"],
+        "Upper Body": ["Push-ups","Inverted Rows","Shoulder Taps","Tricep Dips","Wall Slides"],
+        "Core": ["Plank Variations","Leg Raises","Dead Bug","Bird-Dog","Slow Russian Twists"],
+        "Functional": ["Single-leg balance","Light lateral bounds","Low box step-ups","Rotational Twists","Hip Mobility Drill"]
+    }
 
-    cardio_options = [
-        "Cycling","Brisk Walk","Treadmill Walk",
-        "Elliptical (legs only)","Stationary Bike","Jogging","Rowing"
-    ]
+    cardio_options = ["Brisk Walk","Light Jog","Cycling","Swimming","Elliptical","Rowing","Stationary Bike"]
 
-    # ---------------- Dynamic Selection ----------------
-    strength_pool = general_strength.copy()
-    cardio_exercise = random.choice(cardio_options)
-
-    # Add a few extra generic exercises based on role input
+    # ---------------- Role Adaptation ----------------
     role_words = position.lower().split()
-    if len(role_words) > 0:
-        # Just some generic extra variety for any role input
-        strength_pool += ["Plank Variations","Push-ups","Step-ups","Rotational Twists"]
+    # Generic role-based modifiers (adds variety without hardcoding)
+    extra_strength = ["Plank Variations","Push-ups","Step-ups","Rotational Twists"]
+    
+    # Flatten all pools and add extra
+    strength_pool = []
+    for key in strength_general:
+        strength_pool += strength_general[key]
+    strength_pool += extra_strength
 
-    # Remove exercises that may aggravate injury
+    # Remove high-impact exercises if injury exists
     if injury and injury.lower() != "none":
-        strength_pool = [
-            ex for ex in strength_pool
-            if "Jump" not in ex and "Lunge" not in ex and "Step-ups" not in ex
-        ]
-
-    # Pick up to 5 exercises randomly
-    strength_exercises = random.sample(strength_pool, min(5, len(strength_pool)))
+        strength_pool = [ex for ex in strength_pool if "Jump" not in ex and "Lunge" not in ex and "Step-ups" not in ex]
 
     # ---------------- Time Allocation ----------------
     warmup = 10
     cooldown = 10
-    usable = max(session_duration - warmup - cooldown, 0)
-    cardio_block = usable // 2
-    strength_block = usable - cardio_block
-    time_per_strength = round(strength_block / len(strength_exercises), 1) if strength_exercises else 0
+    usable_time = max(session_duration - warmup - cooldown, 0)
+    cardio_time = usable_time // 2
+    strength_time = usable_time - cardio_time
 
-    # ---------------- Sets Based on Intensity ----------------
-    sets = {"Low":2,"Moderate":3,"High":4}[intensity]
+    # ---------------- Sets/Reps by Intensity ----------------
+    sets_map = {"Low":2,"Moderate":3,"High":4}
+    reps_map = {"Low":"15-20","Moderate":"12-15","High":"8-12"}
+    sets = sets_map.get(intensity, 2)
+    reps = reps_map.get(intensity, "10-15")
+
+    # ---------------- Pick Strength Exercises ----------------
+    num_strength_exercises = min(6, len(strength_pool))
+    strength_exercises = random.sample(strength_pool, num_strength_exercises)
+    time_per_strength = round(strength_time / len(strength_exercises), 1) if strength_exercises else 0
 
     # ---------------- Build Table ----------------
     rows = []
@@ -116,17 +115,18 @@ def generate_workout_table():
         rows.append({
             "Exercise": ex,
             "Sets": sets,
-            "Reps / Time": f"10-15 reps (~{time_per_strength} min)"
+            "Reps / Time": f"{reps} reps (~{time_per_strength} min)"
         })
 
+    # ---------------- Pick Cardio Exercise ----------------
+    cardio_exercise = random.choice(cardio_options)
     rows.append({
         "Exercise": cardio_exercise,
         "Sets": "-",
-        "Reps / Time": f"{cardio_block} min steady pace"
+        "Reps / Time": f"{cardio_time} min steady pace"
     })
 
     return pd.DataFrame(rows)
-
 # ---------------- NUTRITION ----------------
 def generate_nutrition():
 
