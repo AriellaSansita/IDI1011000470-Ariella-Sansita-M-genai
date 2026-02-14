@@ -157,7 +157,10 @@ def get_ai_text(prompt):
         if not r or not r.candidates:
             return "⚠️ No AI output"
         return r.candidates[0].content.parts[0].text
+
     except Exception as e:
+        if "quota" in str(e).lower() or "429" in str(e):
+            return "⚠️ API quota exceeded. Wait a bit and try again."
         return f"Error: {e}"
 
 # ---------------- NUTRITION ----------------
@@ -256,6 +259,10 @@ if st.button("Generate Coaching Advice"):
         st.table(pd.DataFrame({"Day": days, "Focus": schedule}).set_index("Day"))
 
     if selected_feature == "Nutrition Plan":
-        st.subheader("🥗 Nutrition Guide")
-        st.dataframe(generate_nutrition())
+    st.subheader("🥗 Nutrition Guide")
+    try:
+        nutrition_df = generate_nutrition()
+        st.dataframe(nutrition_df)
+    except Exception as e:
+        st.error(f"Nutrition module failed: {e}")
 
