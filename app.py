@@ -72,7 +72,9 @@ def generate_workout_table():
         {"name": "Squats", "type": "strength", "uses_arm": False},
         {"name": "Plank", "type": "core", "uses_arm": True},
         {"name": "Lunges", "type": "strength", "uses_arm": False},
-        {"name": "Jogging", "type": "cardio", "uses_arm": False},
+        {"name": "Cycling / Brisk Walk", "type": "cardio", "uses_arm": False},
+        {"name": "Glute Bridges", "type": "strength", "uses_arm": False},
+        {"name": "Calf Raises", "type": "strength", "uses_arm": False}
     ]
 
     inj = injury.lower()
@@ -205,12 +207,39 @@ if st.button("Generate Coaching Advice"):
 
         if "Weekly Training Plan" in selected_features:
             st.subheader("📅 Weekly Training Schedule")
-
+        
             days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
-            focus_pool = ["Stamina","Strength","Cardio","Mobility","Speed","Technique","Recovery"]
+        
+            inj = injury.lower()
+        
+            # Injury-aware focus selection
+            if "arm" in inj or "broken" in inj or "fracture" in inj:
+                focus_pool = [
+                    "Stamina",
+                    "Cardio",
+                    "Lower Body",
+                    "Recovery",
+                    "Mobility",
+                    "Cardio",
+                    "Recovery"
+                ]
+            else:
+                focus_pool = [
+                    "Stamina",
+                    "Strength",
+                    "Cardio",
+                    "Mobility",
+                    "Speed",
+                    "Technique",
+                    "Recovery"
+                ]
+        
+            # Generate schedule
+            schedule = [focus_pool[i] if i < training_days else "Rest" for i in range(7)]
+        
+            # Clean table (no ugly index column)
+            st.table(pd.DataFrame({"Day": days, "Focus": schedule}).set_index("Day"))
 
-            schedule = [focus_pool[i % len(focus_pool)] if i < training_days else "Rest" for i in range(7)]
-            st.table(pd.DataFrame({"Day": days, "Focus": schedule}))
 
         if "Nutrition Plan" in selected_features:
             st.subheader("🥗 Nutrition Guide")
