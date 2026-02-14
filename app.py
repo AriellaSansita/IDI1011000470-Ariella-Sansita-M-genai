@@ -44,7 +44,6 @@ injury = st.text_input("Injury History (None if no injury)")
 goal = st.selectbox("Primary Goal", ["Stamina","Strength","Speed","Recovery","Skill Improvement"])
 diet = st.selectbox("Diet Type", ["Vegetarian","Non-Vegetarian","Vegan"])
 intensity = st.selectbox("Training Intensity", ["Low","Moderate","High"])
-weakness = st.text_input("Biggest Weakness (optional)")
 age = st.slider("Age", 10, 50, 18)
 training_days = st.slider("Training Days / Week", 1, 7, 4)
 session_duration = st.slider("Session Duration (minutes)", 30, 180, 90)
@@ -126,7 +125,6 @@ Age: {age}
 Goal: {goal}
 Injury: {injury}
 Intensity: {intensity}
-Weakness: {weakness}
 Diet: {diet}
 Training Days: {training_days}
 Session Duration: {session_duration}
