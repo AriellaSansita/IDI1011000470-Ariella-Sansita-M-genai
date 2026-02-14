@@ -229,6 +229,15 @@ def generate_workout_table():
 
     return pd.DataFrame(rows)
 
+if "last_output" not in st.session_state:
+    st.session_state.last_output = ""
+
+if st.button("Generate Coaching Advice"):
+    with st.spinner("AI Coach thinking..."):
+        st.session_state.last_output = get_ai_text(build_prompt())
+
+st.subheader("📋 AI Coaching Output")
+st.write(st.session_state.last_output)
 
 
 # ---------------- GENERATE ----------------
