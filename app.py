@@ -49,61 +49,43 @@ training_days = st.slider("Training Days / Week", 1, 7, 4)
 session_duration = st.slider("Session Duration (minutes)", 30, 180, 90)
 
 # ---------------- FEATURE DROPDOWN ----------------
-all_features = [
-    "Full Workout Plan",
-    "Injury Recovery Plan",
-    "Weekly Training Plan",
-    "Stamina Builder",
-    "Nutrition Plan",
-    "Hydration Strategy",
-    "Warm-up & Cooldown",
-    "Tactical Coaching",
-    "Mental Focus Training",
-    "Skill Drills",
-    "Progress Predictor",
-    "Weakness Analyzer",
-    "Match Strategy",
-    "Pre-Match Routine",
-    "Post-Match Recovery",
-    "Motivation Coach",
-    "Injury Risk Predictor",
-    "Mobility & Stretching",
-    "Tournament Preparation"
+features = [
+    "Full Workout Plan","Injury Recovery Plan","Weekly Training Plan",
+    "Stamina Builder","Nutrition Plan","Hydration Strategy",
+    "Warm-up & Cooldown","Tactical Coaching","Mental Focus Training",
+    "Skill Drills","Progress Predictor","Match Strategy",
+    "Pre-Match Routine","Post-Match Recovery","Injury Risk Predictor",
+    "Mobility & Stretching","Tournament Preparation"
 ]
 
-selected_feature = st.selectbox("Choose Coaching Feature", all_features)
+selected_feature = st.selectbox("Choose Coaching Feature", features)
 
 # ---------------- WORKOUT TABLE ----------------
 def generate_workout_table():
-
-    exercises = [
-        {"name": "Squats", "type": "strength"},
-        {"name": "Lunges", "type": "strength"},
-        {"name": "Glute Bridges", "type": "strength"},
-        {"name": "Calf Raises", "type": "strength"},
-        {"name": "Cycling / Brisk Walk", "type": "cardio"}
-    ]
 
     warmup = 10
     cooldown = 10
     usable = session_duration - warmup - cooldown
 
-    cardio_block = int(usable * 0.5)
+    cardio_block = min(38, max(30, int(usable * 0.5)))
     strength_block = usable - cardio_block
 
+    exercises = ["Squats","Lunges","Glute Bridges","Calf Raises"]
     rows = []
 
-    time_per_strength = max(6, strength_block // 4)
+    time_per_strength = max(6, strength_block // len(exercises))
 
-    for ex in exercises[:-1]:
+    sets = 1 if intensity == "Low" else 2 if intensity == "Moderate" else 3
+
+    for ex in exercises:
         rows.append({
-            "Exercise": ex["name"],
-            "Sets": 2 if intensity != "Low" else 1,
+            "Exercise": ex,
+            "Sets": sets,
             "Reps / Time": f"12-15 reps (~{time_per_strength} min)"
         })
 
     rows.append({
-        "Exercise": exercises[-1]["name"],
+        "Exercise": "Cycling / Brisk Walk",
         "Sets": "-",
         "Reps / Time": f"{cardio_block} min steady pace"
     })
@@ -112,8 +94,6 @@ def generate_workout_table():
 
 # ---------------- AI PROMPT ----------------
 def build_prompt():
-
-    feature_text = selected_feature
 
     return f"""
 You are a professional youth sports coach AI.
@@ -129,38 +109,31 @@ Diet: {diet}
 Training Days: {training_days}
 Session Duration: {session_duration}
 
-Include ONLY selected modules: {feature_text}
+Include ONLY module: {selected_feature}
 
 Rules:
 - Max 220 words
 - Bullet points
 - Practical, structured, realistic
 - No motivation fluff
+- If arm injury: NO planks, NO pushups, NO jumps, NO arm loading
 
-Sections (only if relevant):
-Recovery
-Workout Focus
-Weekly Advice
-Skill Drills
-Tactical Coaching
-Mental Focus
-Progress Prediction
-Weakness Fix
-Match Strategy
-Pre-Match
-Post-Match
-Injury Risk
-Mobility
-Tournament Prep
-Diet & Hydration
+Workout Rules:
+- Total session MUST equal {session_duration} minutes
+- Warmup 10 min
+- Cardio 35-40 min MAX
+- Strength remaining time
+- Cooldown 10 min
+- Always show time split
 """
 
+# ---------------- AI CALL ----------------
 def get_ai_text(prompt):
     try:
-        response = model.generate_content(prompt)
-        if not response or not response.candidates:
-            return "⚠️ No AI output."
-        return response.candidates[0].content.parts[0].text
+        r = model.generate_content(prompt)
+        if not r or not r.candidates:
+            return "⚠️ No AI output"
+        return r.candidates[0].content.parts[0].text
     except Exception as e:
         return f"Error: {e}"
 
@@ -201,15 +174,9 @@ if st.button("Generate Coaching Advice"):
         st.subheader("📅 Weekly Schedule")
 
         days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
-
         focus_pool = [
-            "Stamina + Cardio",
-            "Strength",
-            "Skill + Tactical",
-            "Mobility",
-            "Speed",
-            "Technique",
-            "Recovery"
+            "Stamina + Cardio","Strength","Skill + Tactical",
+            "Mobility","Speed","Technique","Recovery"
         ]
 
         schedule = [focus_pool[i] if i < training_days else "Rest" for i in range(7)]
@@ -218,3 +185,4 @@ if st.button("Generate Coaching Advice"):
     if selected_feature == "Nutrition Plan":
         st.subheader("🥗 Nutrition Guide")
         st.dataframe(generate_nutrition())
+
