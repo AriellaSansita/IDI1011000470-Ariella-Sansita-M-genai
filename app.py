@@ -237,10 +237,12 @@ if "last_output" not in st.session_state:
 
 # ---------------- GENERATE ----------------
 if st.button("Generate Coaching Advice"):
+
     with st.spinner("AI Coach thinking..."):
         st.session_state.last_output = get_ai_text(build_prompt())
-        st.subheader("📋 AI Coaching Output")
-        st.write(st.session_state.last_output)
+
+    st.subheader("📋 AI Coaching Output")
+    st.write(st.session_state.last_output)
 
     if selected_feature == "Full Workout Plan":
         st.subheader("🏋️ Workout Plan")
@@ -258,11 +260,10 @@ if st.button("Generate Coaching Advice"):
         schedule = [focus_pool[i] if i < training_days else "Rest" for i in range(7)]
         st.table(pd.DataFrame({"Day": days, "Focus": schedule}).set_index("Day"))
 
-   if selected_feature == "Nutrition Plan":
-    st.subheader("🥗 Nutrition Guide")
-    try:
-        nutrition_df = generate_nutrition()
-        st.dataframe(nutrition_df)
-    except Exception as e:
-        st.error(f"Nutrition module failed: {e}")
-
+    if selected_feature == "Nutrition Plan":
+        st.subheader("🥗 Nutrition Guide")
+        try:
+            nutrition_df = generate_nutrition()
+            st.dataframe(nutrition_df)
+        except Exception as e:
+            st.error(f"Nutrition module failed: {e}")
