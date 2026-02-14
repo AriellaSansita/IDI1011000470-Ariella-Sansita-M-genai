@@ -163,15 +163,9 @@ if st.button("Generate Coaching Advice"):
         st.subheader("🥗 Nutrition Guide")
         st.dataframe(generate_nutrition())
 
+# ---------------- RESET BUTTON ----------------
 if st.button("Reset All Inputs"):
-        # Only reset keys that you actually control
-        keys_to_reset = [
-            "sport","position","injury","goal","diet",
-            "intensity","age","training_days","session_duration",
-            "selected_feature"
-        ]
-        for key in keys_to_reset:
-            if key in st.session_state:
-                del st.session_state[key]  # remove key to reset input
-    
-        st.experimental_rerun()  # refresh the app safely
+    # Only reset keys that you control / set
+    for key, value in defaults.items():
+        st.session_state[key] = value
+    st.experimental_rerun()  # safely refresh app
