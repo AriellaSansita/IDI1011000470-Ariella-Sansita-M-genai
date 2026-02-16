@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 # Using Gemini 1.5 Pro as per assignment requirements 
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 model = genai.GenerativeModel(
-    "gemini-1.5-pro", 
+    "gemini-2.5 Flash, 
     generation_config={
         "temperature": 0.4, # Lower temperature for conservative/safe plans 
         "top_p": 0.9
