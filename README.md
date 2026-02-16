@@ -76,7 +76,8 @@ https://finalgenai-fskpykktspqo6hqiupr2ue.streamlit.app/
 <img width="2770" height="1168" alt="image" src="https://github.com/user-attachments/assets/5918bde3-3428-4312-adc3-073d416bb87c" />
 <img width="2782" height="1264" alt="image" src="https://github.com/user-attachments/assets/0f49517a-dc19-449e-afa6-a04ed96c9bce" />
 <img width="2806" height="1272" alt="image" src="https://github.com/user-attachments/assets/0b3fdf14-6ead-4cfe-bd3f-de78b3f118f6" />
-
+<img width="2784" height="1438" alt="image" src="https://github.com/user-attachments/assets/578f268a-d4fd-4de9-bc0a-53af511d656f" />
+<img width="2788" height="1506" alt="image" src="https://github.com/user-attachments/assets/3b2c5c53-796b-48d0-bfe3-71daebbba1ed" />
 
 # Prompt Engineering 
 
