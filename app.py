@@ -4,13 +4,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # ---------------- CONFIG ----------------
-# Use Gemini 1.5 Pro as per intended learning outcomes 
+# Requirement: Integrate Gemini 1.5 Pro to process data and generate outputs 
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 model = genai.GenerativeModel(
-    "gemini-2.5-flash", 
+    "gemini-1.5-pro", 
     generation_config={
-        "temperature": 0.4, # Lower temperature for safe coaching advice 
-        "top_p": 0.9
+        "temperature": 0.3, # Lower temperature for safe, conservative coaching 
+        "top_p": 0.8
     }
 )
 
@@ -35,11 +35,10 @@ positions_map = {
 st.title("🏆 CoachBot AI: Smart Fitness Assistant")
 st.markdown("---")
 
-# Page Selection via Tabs
 tab1, tab2 = st.tabs(["📊 Smart Coaching Assistant", "🧠 Custom AI Coach"])
 
 with tab1:
-    # 1. Athlete Profile Section
+    # Row 1: Athlete Profile
     st.subheader("1. Athlete Profile")
     p_col1, p_col2, p_col3, p_col4 = st.columns(4)
     with p_col1:
@@ -47,33 +46,38 @@ with tab1:
     with p_col2:
         position = st.selectbox("Position", positions_map[sport])
     with p_col3:
-        # Requirement: Allow age up to 50
         age = st.number_input("Age", 10, 50, 18)
     with p_col4:
         injury = st.text_input("Injury History", "None")
 
-    # 2. Training Goals Section
-    st.subheader("2. Training Goals")
+    # Row 2: Coaching Focus & Schedule (Separated as requested)
+    st.subheader("2. Training Configuration")
     g_col1, g_col2, g_col3, g_col4 = st.columns(4)
     with g_col1:
-        goal = st.selectbox("Primary Goal", ["Stamina", "Strength", "Speed", "Recovery", "Tactical IQ"])
-    with g_col2:
-        intensity = st.select_slider("Intensity", options=["Low", "Moderate", "High"])
-    with g_col3:
-        schedule_days = st.number_input("Schedule Days", 1, 30, 7)
-    with g_col4:
         feature = st.selectbox("Coaching Focus", [
             "Weekly Training Plan", "Nutrition & Macros", "Injury Prevention", "Mental Focus Training"
         ])
+    with g_col2:
+        goal = st.selectbox("Primary Goal", ["Stamina", "Strength", "Speed", "Recovery", "Tactical IQ"])
+    with g_col3:
+        intensity = st.select_slider("Intensity", options=["Low", "Moderate", "High"])
+    with g_col4:
+        schedule_days = st.number_input("Schedule Days", 1, 30, 7)
 
     st.markdown("---")
 
     if st.button("Generate My AI Coaching Plan"):
-        # Prompt Engineering: Fixed to prevent HTML <br> tags in output
-        prompt = (f"Act as a professional coach. Provide a {feature} for a {age} year old {sport} {position}. "
-                  f"Goal: {goal}. Duration: {schedule_days} days. Injury: {injury}. Intensity: {intensity}. "
-                  f"MANDATORY: Output ONLY a Markdown table. Do NOT use HTML tags like <br>. "
-                  f"Use standard Markdown line breaks within cells if necessary.")
+        # Prompt Engineering: Strict instructions to remove <br> tags and use Markdown 
+        prompt = (
+            f"Act as a professional coach for a {age} year old {sport} player ({position}). "
+            f"Goal: {goal}. Intensity: {intensity}. Injury History: {injury}. "
+            f"Provide a {feature} for {schedule_days} days. "
+            "MANDATORY FORMATTING RULES:\n"
+            "1. Output ONLY a Markdown table.\n"
+            "2. DO NOT use HTML tags like <br> or <div>.\n"
+            "3. For line breaks within a table cell, use a single space or a comma.\n"
+            "4. Ensure the text is clean, professional, and easy to read."
+        )
         
         with st.spinner("AI Coach is preparing your data..."):
             try:
@@ -82,19 +86,18 @@ with tab1:
                 res_col, vis_col = st.columns([2, 1])
                 
                 with res_col:
-                    st.success(f"Personalized {feature} for {age}-Year-Old Athlete")
-                    # Renders proper Markdown without showing <br> tags
+                    st.success(f"Personalized {feature} Result")
+                    # Display the cleaned Markdown response
                     st.markdown(response.text)
                 
                 with vis_col:
                     st.subheader("📊 Session Intensity")
-                    # Visualizing data as per Step 6 
+                    # Implementing visualization as required in Step 6 
                     fig, ax = plt.subplots(figsize=(5, 4))
                     labels = ['Warm-up', 'Core Session', 'Cool-down']
                     sizes = [15, 70, 15]
                     ax.pie(sizes, labels=labels, autopct='%1.1f%%', colors=['#ffcc99','#66b3ff','#99ff99'], startangle=90)
                     st.pyplot(fig)
-                    st.info(f"Recommended for {intensity} intensity training.")
                     
             except Exception as e:
                 st.error(f"Error: {e}")
@@ -102,10 +105,11 @@ with tab1:
 with tab2:
     st.subheader("Direct Coach Consultation")
     user_custom_prompt = st.text_area("Ask a specific coaching question:", 
-                                     placeholder="e.g., Provide a nutrition plan for an older athlete focusing on joint health.")
+                                     placeholder="e.g., Suggest mobility drills for a 45-year-old goalkeeper with back stiffness.")
     
     custom_col1, custom_col2 = st.columns([1, 2])
     with custom_col1:
+        # Tuning parameter: Temperature for model optimization 
         custom_temp = st.slider("Coaching Style (Temperature)", 0.0, 1.0, 0.4)
 
     if st.button("Get Custom Advice"):
@@ -118,4 +122,4 @@ with tab2:
                 st.error(f"Error: {e}")
 
 st.markdown("---")
-st.caption("NextGen Sports Lab | AI Summative Assessment | Gemini 2.5 Flash Integration ")
+st.caption("NextGen Sports Lab | AI Summative Assessment | Built with Gemini 1.5 Pro ")
