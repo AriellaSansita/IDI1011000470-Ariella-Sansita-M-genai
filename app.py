@@ -134,4 +134,4 @@ with tab2:
                 st.error(f"Error: {e}")
 
 st.markdown("---")
-st.caption("Developed for NextGen Sports Lab | AI Summative Assessment | Gemini 2.5 Flash)
+st.caption("Developed for NextGen Sports Lab | AI Summative Assessment | Gemini 2.5 Flash")
