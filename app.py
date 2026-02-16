@@ -80,12 +80,17 @@ with tab1:
     st.markdown("---")
 
     if st.button("Generate Plan", type="primary"):
+        # Explicit instructions to remove <br> tags
         prompt = (
             f"Act as a professional youth coach for a {age}yo {sport} {position}. "
             f"Goal: {goal}. Intensity: {intensity_level}. Injury History: {injury}. "
             f"Task: Create a {feature} for {schedule_days} days. "
             f"Meal Preference: {meal_pref}. Allergies: {allergy_info}. "
-            "STRICT RULES: Output ONLY a Markdown table. NO HTML tags like <br>."
+            "STRICT RULES:\n"
+            "1. Output ONLY a Markdown table.\n"
+            "2. DO NOT use HTML tags like <br> or <div>.\n"
+            "3. If you need a line break, use a single space or a comma within the text.\n"
+            "4. Ensure the output is clean Markdown."
         )
         
         with st.spinner("AI Coach thinking..."):
@@ -111,21 +116,21 @@ with tab2:
     
     c_col1, c_col2 = st.columns([1, 2])
     with c_col1:
-        # Intensity 1-100 Slider
+        # User defined intensity (1-100)
         intensity_val = st.slider("Advice Intensity", 1, 100, 40)
         ai_temp = intensity_val / 100.0
 
     if st.button("Ask AI Coach", type="primary"):
         if user_query:
-            # Custom Prompt Engineering for Short Chart Response
+            # Enforcing short chart/table response
             custom_prompt = (
-                f"User Question: {user_query}. "
-                f"Coaching Intensity Level: {intensity_val}/100. "
+                f"Question: {user_query}. "
+                f"Intensity: {intensity_val}/100. "
                 "STRICT RULES:\n"
-                "1. Provide the response ONLY in a short Markdown table/chart.\n"
-                "2. Keep explanations extremely concise (bullet points only).\n"
-                "3. Use professional sports terminology.\n"
-                "4. No conversational filler or HTML tags."
+                "1. Response MUST be a short Markdown table.\n"
+                "2. NO HTML tags like <br>.\n"
+                "3. Keep descriptions very brief (bullet points).\n"
+                "4. Be technical and concise."
             )
             
             try:
