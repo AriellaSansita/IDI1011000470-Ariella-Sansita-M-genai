@@ -9,24 +9,15 @@ genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 model = genai.GenerativeModel(
     "gemini-2.5-flash", 
     generation_config={
-        "temperature": 0.3, # Low temperature for safe, precise coaching
+        "temperature": 0.3, # Low temperature for safe, precise coaching (Step 2)
         "top_p": 0.8
     }
 )
 
 st.set_page_config(page_title="CoachBot AI", layout="wide", page_icon="🏆")
 
-# ---------------- RESET LOGIC ----------------
-# This logic ensures the "Reset All Fields" button clears everything
-if 'reset_counter' not in st.session_state:
-    st.session_state.reset_counter = 0
-
-def reset_all():
-    # Incrementing the counter forces all widgets with this key version to reset
-    st.session_state.reset_counter += 1
-    st.rerun()
-
 # ---------------- DATA MAPPING ----------------
+# Position-sensitive mapping for personalized outputs
 positions_map = {
     "Football": ["Striker", "Midfielder", "Defender", "Goalkeeper", "Winger"],
     "Cricket": ["Batsman", "Fast Bowler", "Spin Bowler", "Wicket Keeper", "All-Rounder"],
@@ -49,20 +40,17 @@ st.markdown("---")
 tab1, tab2 = st.tabs(["📊 Smart Assistant", "🧠 Custom Coach"])
 
 with tab1:
-    # Key version for reset functionality
-    rv = st.session_state.reset_counter
-
     # Row 1: Athlete Profile
     st.subheader("1. Athlete Profile")
     p_col1, p_col2, p_col3, p_col4 = st.columns(4)
     with p_col1:
-        sport = st.selectbox("Sport", list(positions_map.keys()), key=f"s_{rv}")
+        sport = st.selectbox("Sport", list(positions_map.keys()))
     with p_col2:
-        position = st.selectbox("Position", positions_map[sport], key=f"p_{rv}")
+        position = st.selectbox("Position", positions_map[sport])
     with p_col3:
-        age = st.number_input("Age", 10, 50, 18, key=f"a_{rv}")
+        age = st.number_input("Age", 10, 50, 18)
     with p_col4:
-        injury = st.text_input("Injury History", "None", key=f"i_{rv}")
+        injury = st.text_input("Injury History", "None")
 
     # Row 2: Training Configuration (Step 3: Required 10 Prompts)
     st.subheader("2. Training Configuration")
@@ -73,33 +61,26 @@ with tab1:
             "Hydration Strategy", "Warm-up & Cooldown", "Tactical Coaching", 
             "Skill Drills", "Injury Risk Predictor", "Mobility & Stretching", 
             "Mental Focus Training"
-        ], key=f"f_{rv}")
+        ])
     with g_col2:
-        goal = st.selectbox("Primary Goal", ["Stamina", "Strength", "Speed", "Recovery", "Skill Improvement"], key=f"g_{rv}")
+        goal = st.selectbox("Primary Goal", ["Stamina", "Strength", "Speed", "Recovery", "Skill Improvement"])
     with g_col3:
-        intensity = st.select_slider("Intensity", options=["Low", "Moderate", "High"], key=f"int_{rv}")
+        intensity = st.select_slider("Intensity", options=["Low", "Moderate", "High"])
     with g_col4:
-        schedule_days = st.number_input("Schedule Days", 1, 30, 7, key=f"d_{rv}")
+        schedule_days = st.number_input("Schedule Days", 1, 30, 7)
 
     st.markdown("---")
 
-    # Action Buttons
-    b1, b2 = st.columns([1, 6])
-    with b1:
-        generate_btn = st.button("Generate Plan", type="primary")
-    with b2:
-        # Fixed Reset Button for Usability requirements
-        st.button("Reset All Fields", on_click=reset_all)
-
-    if generate_btn:
+    # Generate Button
+    if st.button("Generate Plan", type="primary"):
         # Prompt Engineering (Step 3 & 4): Enforcing table output and removing HTML
         prompt = (
-            f"Act as a certified pro coach for a {age}yo {sport} {position}. "
+            f"Act as a professional youth coach for a {age}yo {sport} {position}. "
             f"Goal: {goal}. Intensity: {intensity}. Injury History: {injury}. "
             f"Create a {feature} for {schedule_days} days. "
             "STRICT RULES:\n"
             "1. Output ONLY a Markdown table.\n"
-            "2. DO NOT use HTML tags (like <br>).\n"
+            "2. DO NOT use HTML tags like <br>.\n"
             "3. Ensure advice is safety-first and customized for the position."
         )
         
@@ -123,13 +104,12 @@ with tab1:
 with tab2:
     st.subheader("🧠 Custom Coach Consultation")
     user_query = st.text_area("Ask a specific coaching question:", 
-                             placeholder="e.g., What are some pre-match visualization techniques?",
-                             key=f"q_{rv}")
+                             placeholder="e.g., What are some pre-match visualization techniques?")
     
     c_col1, c_col2 = st.columns([1, 2])
     with c_col1:
         # Step 5: Hyperparameter Tuning (Temperature Slider)
-        c_temp = st.slider("Coaching Style (Temperature)", 0.0, 1.0, 0.4, key=f"t_{rv}")
+        c_temp = st.slider("Coaching Style (Temperature)", 0.0, 1.0, 0.4)
 
     if st.button("Ask AI Coach", type="primary"):
         if user_query:
