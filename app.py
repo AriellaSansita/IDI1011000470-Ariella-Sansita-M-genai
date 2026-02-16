@@ -9,19 +9,20 @@ genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 model = genai.GenerativeModel(
     "gemini-2.5-flash", 
     generation_config={
-        "temperature": 0.3, # Optimized for precision and safety
+        "temperature": 0.3, # Low temperature for safe, precise coaching
         "top_p": 0.8
     }
 )
 
-st.set_page_config(page_title="Elite Athlete AI", layout="wide", page_icon="⚡")
+st.set_page_config(page_title="CoachBot AI", layout="wide", page_icon="🏆")
 
 # ---------------- RESET LOGIC ----------------
-# Step 6: User-centric UX - Ensures the app can be cleared entirely
+# This logic ensures the "Reset All Fields" button clears everything
 if 'reset_counter' not in st.session_state:
     st.session_state.reset_counter = 0
 
 def reset_all():
+    # Incrementing the counter forces all widgets with this key version to reset
     st.session_state.reset_counter += 1
     st.rerun()
 
@@ -41,11 +42,11 @@ positions_map = {
 }
 
 # ---------------- TOP UI LAYOUT ----------------
-st.title("⚡ Elite Athlete AI: Smart Performance Assistant")
-st.markdown("> **Scenario 2:** Bridging the coaching gap for youth athletes through AI-driven insights.")
+st.title("🏆 CoachBot AI - Smart Fitness Assistant")
+st.write("AI-powered personalized coach for young athletes")
 st.markdown("---")
 
-tab1, tab2 = st.tabs(["📊 Performance Assistant", "🧠 Tactical AI Coach"])
+tab1, tab2 = st.tabs(["📊 Smart Assistant", "🧠 Custom Coach"])
 
 with tab1:
     # Key version for reset functionality
@@ -87,6 +88,7 @@ with tab1:
     with b1:
         generate_btn = st.button("Generate Plan", type="primary")
     with b2:
+        # Fixed Reset Button for Usability requirements
         st.button("Reset All Fields", on_click=reset_all)
 
     if generate_btn:
@@ -97,17 +99,17 @@ with tab1:
             f"Create a {feature} for {schedule_days} days. "
             "STRICT RULES:\n"
             "1. Output ONLY a Markdown table.\n"
-            "2. NO HTML tags (like <br>).\n"
+            "2. DO NOT use HTML tags (like <br>).\n"
             "3. Ensure advice is safety-first and customized for the position."
         )
         
-        with st.spinner("AI is calculating performance metrics..."):
+        with st.spinner("AI Coach thinking..."):
             try:
                 response = model.generate_content(prompt)
                 out_col, vis_col = st.columns([2, 1])
                 with out_col:
-                    st.success(f"Generated: {feature}")
-                    st.markdown(response.text) # Clean output
+                    st.success(f"📋 AI Coaching Output: {feature}")
+                    st.markdown(response.text) 
                 with vis_col:
                     st.subheader("📊 Session Load Analysis")
                     # Step 6: Data Visualization for technical proficiency
@@ -119,9 +121,9 @@ with tab1:
                 st.error(f"Error: {e}")
 
 with tab2:
-    st.subheader("🧠 Tactical AI Coach")
-    user_query = st.text_area("Specific coaching question:", 
-                             placeholder="e.g., How should a striker position themselves during an indirect free kick?",
+    st.subheader("🧠 Custom Coach Consultation")
+    user_query = st.text_area("Ask a specific coaching question:", 
+                             placeholder="e.g., What are some pre-match visualization techniques?",
                              key=f"q_{rv}")
     
     c_col1, c_col2 = st.columns([1, 2])
@@ -132,7 +134,7 @@ with tab2:
     if st.button("Ask AI Coach", type="primary"):
         if user_query:
             try:
-                # Custom model instance with tuned temperature
+                # Custom model instance with user-tuned temperature
                 custom_model = genai.GenerativeModel("gemini-2.5-flash", generation_config={"temperature": c_temp})
                 res = custom_model.generate_content(user_query)
                 st.info("AI Coach Perspective:")
@@ -141,4 +143,4 @@ with tab2:
                 st.error(f"Error: {e}")
 
 st.markdown("---")
-st.caption("⚡ Elite Athlete AI | NextGen Sports Lab | AI Summative Assessment 2026")
+st.caption("🏆 CoachBot AI | NextGen Sports Lab | AI Summative Assessment")
