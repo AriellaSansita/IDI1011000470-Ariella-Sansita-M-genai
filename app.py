@@ -10,17 +10,14 @@ def get_ai_response(target_model, prompt):
     """Safely extracts text and programmatically removes HTML tags like <br>."""
     try:
         response = target_model.generate_content(prompt)
-        # Verify the response contains valid parts to avoid 'Part' accessor errors
         if response.candidates and response.candidates[0].content.parts:
             raw_text = response.candidates[0].content.parts[0].text
-            # Manual cleanup to ensure strict Markdown formatting
             clean_text = raw_text.replace("<br>", " ").replace("</br>", " ").replace("<div>", "").replace("</div>", "")
             return clean_text
         return "The AI Coach is currently unavailable. Please check your connection."
     except Exception as e:
         return f"Model Error: {str(e)}"
 
-# Set app branding and layout
 st.set_page_config(page_title="CoachBot AI", layout="wide", page_icon="🏆")
 
 # ---------------- DATA MAPPING ----------------
@@ -55,7 +52,6 @@ with tab1:
     st.subheader("2. Training Details")
     g1, g2, g3, g4 = st.columns(4)
     with g1: 
-        # Requirement: 10 creative, diverse prompts/features
         feature = st.selectbox("Coaching Focus", [
             "Full Workout Plan", "Weekly Training Plan", "Nutrition Plan", 
             "Hydration Strategy", "Warm-up & Cooldown", "Tactical Coaching", 
@@ -66,7 +62,6 @@ with tab1:
     with g3: intensity_level = st.select_slider("Intensity Level", options=["Low", "Moderate", "High"])
     with g4: days = st.number_input("Duration (Days)", 1, 30, 7)
 
-    # Dynamic Nutrition inputs (Conditional Logic)
     allergy, pref = "None", "N/A"
     if feature in ["Nutrition Plan", "Hydration Strategy"]:
         st.info("🍎 Nutrition Details Required")
@@ -75,7 +70,6 @@ with tab1:
         with f2: allergy = st.text_input("Food Allergies", "None")
 
     if st.button("Generate Plan", type="primary"):
-        # Initializing Gemini 2.5 Flash
         model = genai.GenerativeModel("gemini-2.5-flash")
         
         prompt = (
@@ -93,7 +87,6 @@ with tab1:
                 st.success(f"📋 AI Coaching Output: {feature}")
                 st.markdown(result)
             with vis_col:
-                # Step 6: Data Visualization Requirement
                 st.subheader("📊 Session Load Split")
                 fig, ax = plt.subplots(figsize=(5,4))
                 ax.pie([20, 60, 20], labels=['Warm-up', 'Core Work', 'Recovery'], 
@@ -107,13 +100,11 @@ with tab2:
     
     col_a, col_b = st.columns([1, 2])
     with col_a:
-        # Intensity 1-100 slider mapping to model temperature (Hyperparameter Tuning)
         intensity_val = st.slider("Advice Intensity", 1, 100, 40)
         ai_temp = intensity_val / 100.0
 
     if st.button("Ask AI Coach", type="primary"):
         if user_query:
-            # Re-initializing model with custom temperature (Intensity)
             custom_model = genai.GenerativeModel("gemini-2.5-flash", 
                                                generation_config={"temperature": ai_temp})
             
