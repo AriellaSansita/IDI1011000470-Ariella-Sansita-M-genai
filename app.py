@@ -3,17 +3,17 @@ import google.generativeai as genai
 import matplotlib.pyplot as plt
 
 # ---------------- CONFIGURATION ----------------
-# Requirement: Integrate Gemini 2.5 Flash to process data
+# Use the specific Gemini 2.5 Flash model string as requested
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 
 def get_ai_response(target_model, prompt):
-    """Safely extracts text and removes pesky <br> tags programmatically."""
+    """Safely extracts text and programmatically removes HTML tags like <br>."""
     try:
         response = target_model.generate_content(prompt)
-        # Fix for the 'Part' error: manual check for valid response parts
+        # Verify the response contains valid parts to avoid 'Part' accessor errors
         if response.candidates and response.candidates[0].content.parts:
             raw_text = response.candidates[0].content.parts[0].text
-            # Strict removal of HTML tags to ensure clean Markdown tables
+            # Manual cleanup to ensure strict Markdown formatting
             clean_text = raw_text.replace("<br>", " ").replace("</br>", " ").replace("<div>", "").replace("</div>", "")
             return clean_text
         return "The AI Coach is currently unavailable. Please check your connection."
@@ -62,14 +62,14 @@ with tab1:
             "Skill Drills", "Injury Risk Predictor", "Mobility & Stretching", 
             "Mental Focus Training"
         ])
-    with g2: goal = st.selectbox("Goal", ["Stamina", "Strength", "Speed", "Recovery", "Skill"])
+    with g2: goal = st.selectbox("Goal", ["Stamina", "Strength", "Speed", "Recovery", "Skill Improvement"])
     with g3: intensity_level = st.select_slider("Intensity Level", options=["Low", "Moderate", "High"])
     with g4: days = st.number_input("Duration (Days)", 1, 30, 7)
 
-    # Nutrition logic (Allergies & Meal Preference)
+    # Dynamic Nutrition inputs (Conditional Logic)
     allergy, pref = "None", "N/A"
     if feature in ["Nutrition Plan", "Hydration Strategy"]:
-        st.info("🍎 Additional Nutrition Info Required")
+        st.info("🍎 Nutrition Details Required")
         f1, f2 = st.columns(2)
         with f1: pref = st.selectbox("Meal Preference", ["Non-Veg", "Vegetarian", "Vegan"])
         with f2: allergy = st.text_input("Food Allergies", "None")
@@ -79,23 +79,24 @@ with tab1:
         model = genai.GenerativeModel("gemini-2.5-flash")
         
         prompt = (
-            f"Act as a pro coach for a {age}yo {sport} {position}. Goal: {goal}. "
+            f"Act as a professional coach for a {age}yo {sport} {position}. Goal: {goal}. "
             f"Intensity: {intensity_level}. Injury History: {injury}. "
             f"Diet: {pref}. Allergies: {allergy}. Task: Provide a {feature} for {days} days. "
             "STRICT RULES: Output ONLY a Markdown table. NO HTML tags like <br>. "
-            "Ensure technical accuracy for the chosen position."
+            "Ensure the content is technically accurate for the specific athlete position."
         )
         
         with st.spinner("AI Coach calculating performance data..."):
             result = get_ai_response(model, prompt)
             res_col, vis_col = st.columns([2, 1])
             with res_col:
+                st.success(f"📋 AI Coaching Output: {feature}")
                 st.markdown(result)
             with vis_col:
                 # Step 6: Data Visualization Requirement
-                st.subheader("📊 Session Split")
+                st.subheader("📊 Session Load Split")
                 fig, ax = plt.subplots(figsize=(5,4))
-                ax.pie([20, 60, 20], labels=['Warm-up', 'Core', 'Recovery'], 
+                ax.pie([20, 60, 20], labels=['Warm-up', 'Core Work', 'Recovery'], 
                        autopct='%1.1f%%', colors=['#FFD700','#1E90FF','#32CD32'])
                 st.pyplot(fig)
 
@@ -106,7 +107,7 @@ with tab2:
     
     col_a, col_b = st.columns([1, 2])
     with col_a:
-        # Intensity 1-100 slider mapping to model temperature
+        # Intensity 1-100 slider mapping to model temperature (Hyperparameter Tuning)
         intensity_val = st.slider("Advice Intensity", 1, 100, 40)
         ai_temp = intensity_val / 100.0
 
@@ -117,15 +118,14 @@ with tab2:
                                                generation_config={"temperature": ai_temp})
             
             custom_prompt = (
-                f"Question: {user_query}. Intensity Level: {intensity_val}/100. "
-                "STRICT RULES: Output ONLY a short Markdown table. NO HTML tags like <br>. "
-                "Keep responses extremely concise and technical."
+                f"User Question: {user_query}. Advice Intensity: {intensity_val}/100. "
+                "STRICT RULES: Output ONLY a short, technical Markdown table. NO HTML tags like <br>. "
+                "Keep descriptions extremely concise."
             )
             
-            with st.spinner("Consulting..."):
+            with st.spinner("Consulting AI Coach..."):
                 answer = get_ai_response(custom_model, custom_prompt)
                 st.info("📋 Quick Coaching Chart:")
                 st.markdown(answer)
 
 st.markdown("---")
-st.caption("🏆 CoachBot AI | NextGen Sports Lab | AI Summative Assessment 2026")
